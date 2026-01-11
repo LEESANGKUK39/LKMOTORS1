@@ -2,74 +2,70 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LKMOTORS - 관리 시스템</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LKMOTORS - 정비 관리 시스템</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .hidden { display: none !important; }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800">
+<body class="bg-slate-100 min-h-screen text-slate-800">
 
-    <section id="home-section" class="max-w-4xl mx-auto py-16 px-6 text-center">
-        <h1 class="text-4xl font-black text-blue-600 mb-8 italic">LKMOTORS</h1>
-        <div class="flex flex-col gap-4 max-w-xs mx-auto">
-            <button onclick="showLogin()" class="py-5 bg-blue-600 text-white font-bold rounded-2xl shadow-lg">정비정보 조회/관리 로그인</button>
-            <button onclick="showRegister()" class="text-sm font-bold text-slate-400 underline">신규 고객 등록</button>
+    <section id="home-section" class="max-w-md mx-auto py-20 px-6 text-center">
+        <h1 class="text-5xl font-black text-blue-600 mb-2 italic tracking-tighter">LKMOTORS</h1>
+        <p class="text-slate-500 mb-12 font-medium">진해 안골 자동차 정비 전문</p>
+        <div class="flex flex-col gap-4">
+            <button onclick="showLogin()" class="py-5 bg-blue-600 text-white font-bold rounded-2xl shadow-xl active:scale-95 transition-all text-lg">내 차 정비정보 조회</button>
+            <button onclick="showRegister()" class="py-4 bg-white text-slate-600 font-bold rounded-2xl border border-slate-200">신규 고객 등록 신청</button>
         </div>
     </section>
 
-    <section id="login-section" class="hidden max-w-md mx-auto bg-white p-10 rounded-[40px] shadow-2xl mt-10">
-        <h2 class="text-2xl font-black text-center mb-6 text-blue-600">LOGIN</h2>
+    <section id="login-section" class="hidden max-w-md mx-auto bg-white p-8 rounded-[40px] shadow-2xl mt-10">
+        <h2 class="text-2xl font-black text-center mb-8 text-blue-600 italic">LOGIN</h2>
         <div class="space-y-4">
-            <input type="text" id="login-id" placeholder="차량번호 또는 관리자ID" class="w-full p-4 bg-gray-50 border rounded-2xl font-bold outline-none focus:border-blue-500">
-            <input type="password" id="login-pw" placeholder="비밀번호" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:border-blue-500">
-            <button onclick="handleLogin()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl">로그인하기</button>
-            <button onclick="location.reload()" class="w-full text-gray-400 text-sm">돌아가기</button>
+            <input type="text" id="login-id" placeholder="차량번호 또는 관리자ID" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold focus:ring-2 focus:ring-blue-500 outline-none">
+            <input type="password" id="login-pw" placeholder="비밀번호" class="w-full p-4 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none">
+            <button onclick="handleLogin()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg">확인</button>
+            <button onclick="location.reload()" class="w-full text-slate-400 text-sm font-medium">취소하고 돌아가기</button>
         </div>
     </section>
 
-    <section id="admin-section" class="hidden max-w-4xl mx-auto bg-white p-8 rounded-[40px] shadow-2xl border-t-8 border-blue-600 mt-10">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-xl font-black text-blue-600 font-mono">ADMIN CONTROL</h2>
-            <button onclick="location.reload()" class="text-xs font-bold text-red-400 border px-3 py-1 rounded-full">LOGOUT</button>
+    <section id="admin-section" class="hidden max-w-4xl mx-auto bg-white p-6 rounded-[30px] shadow-xl mt-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="font-black text-blue-600">관리자 모드</h2>
+            <button onclick="location.reload()" class="text-xs bg-slate-100 px-3 py-1 rounded-lg">로그아웃</button>
         </div>
         <div class="flex gap-2 mb-8">
-            <input type="text" id="search-input" placeholder="차량번호 검색" class="flex-1 p-4 bg-gray-50 border rounded-2xl font-bold uppercase outline-none focus:border-blue-500">
-            <button onclick="adminSearch()" class="px-8 bg-slate-900 text-white rounded-2xl font-bold">검색</button>
+            <input type="text" id="search-input" placeholder="차량번호 검색" class="flex-1 p-4 bg-slate-50 rounded-xl font-bold uppercase outline-none border border-slate-200">
+            <button onclick="adminSearch()" class="px-6 bg-slate-800 text-white rounded-xl font-bold">검색</button>
         </div>
-        <div id="admin-detail-area" class="hidden space-y-6">
-            <div class="p-6 bg-slate-50 rounded-[30px] border border-blue-100">
-                <h3 class="font-bold text-blue-600 mb-4 italic text-lg text-left">🔧 정비 기록 추가: <span id="adm-display-car" class="text-slate-800"></span></h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                    <input type="date" id="m-date" class="p-4 border rounded-2xl outline-none">
-                    <input type="text" id="m-task" placeholder="정비명 (예: 엔진오일 교환)" class="p-4 border rounded-2xl outline-none text-sm font-bold">
+        <div id="admin-detail-area" class="hidden space-y-4">
+            <div class="p-6 bg-blue-50 rounded-2xl">
+                <p class="font-bold text-blue-700 mb-4">🔧 정비 입력: <span id="adm-display-car" class="text-slate-900"></span></p>
+                <div class="grid gap-3">
+                    <input type="date" id="m-date" class="p-4 rounded-xl border-none outline-none">
+                    <input type="text" id="m-task" placeholder="작업 내용 (예: 엔진오일 교환)" class="p-4 rounded-xl border-none outline-none font-bold text-sm">
+                    <input type="text" id="m-parts" placeholder="부품/메모 (비공개)" class="p-4 rounded-xl border-none outline-none text-sm bg-white/50">
+                    <button onclick="addLog()" class="py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg">기록 저장</button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                    <input type="text" id="m-parts" placeholder="사용 부품 (관리용)" class="p-4 border rounded-2xl bg-amber-50 outline-none text-sm">
-                    <input type="text" id="m-secret" placeholder="관리자 메모 (관리용)" class="p-4 border rounded-2xl bg-amber-50 outline-none text-sm">
-                </div>
-                <button onclick="addLog()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl">+ 저장하기</button>
             </div>
-            <table class="w-full text-left text-xs">
-                <thead><tr class="border-b text-gray-400 font-bold"><th class="py-3 px-2">DATE</th><th class="py-3 px-2">TASK</th><th class="py-3 px-2">SECRET</th></tr></thead>
-                <tbody id="adm-log-table"></tbody>
-            </table>
+            <div id="adm-log-table" class="space-y-2"></div>
         </div>
     </section>
 
-    <section id="user-section" class="hidden max-w-2xl mx-auto bg-white p-8 rounded-[40px] shadow-2xl mt-10">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-xl font-black">MY CAR INFO</h2>
-            <button onclick="location.reload()" class="text-xs font-bold text-gray-400">Logout</button>
-        </div>
-        <div class="p-10 bg-blue-600 rounded-[35px] text-white mb-8">
-            <p id="u-car" class="text-4xl font-black"></p>
-        </div>
-        <div id="u-log-list" class="space-y-4"></div>
+    <section id="user-section" class="hidden max-w-md mx-auto bg-white p-6 rounded-[30px] shadow-xl mt-6 text-center">
+        <h2 id="u-car" class="text-3xl font-black text-slate-800 mb-6 tracking-tight"></h2>
+        <div id="u-log-list" class="space-y-4 text-left"></div>
+        <button onclick="location.reload()" class="mt-8 text-slate-400 font-bold text-sm">로그아웃</button>
     </section>
 
     <script>
+        // 관리자님 Firebase 정보
         const firebaseConfig = {
             apiKey: "AIzaSyDhTPGNKNm38PSBdATs9lks0lYu52QrP3A",
             authDomain: "lkmotors-246f1.firebaseapp.com",
@@ -80,36 +76,37 @@
             appId: "1:389443224:web:c9b78c1afd3abc1c262aed"
         };
 
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // 관리자 정보 (정확하게 입력)
+        // 관리자 계정 정보
         const ADMIN_ID = "sansay333";
         const ADMIN_PW = "aa272728";
         let currentCar = "";
 
+        // UI 전환 함수
         function showLogin() {
             document.getElementById('home-section').classList.add('hidden');
             document.getElementById('login-section').classList.remove('hidden');
         }
 
+        // 로그인 처리
         function handleLogin() {
-            // 입력값의 앞뒤 공백을 완전히 제거합니다.
             const id = document.getElementById('login-id').value.trim();
             const pw = document.getElementById('login-pw').value.trim();
 
-            console.log("로그인 시도:", id, pw); // 개발용 로그
+            if (!id || !pw) { alert("ID와 비밀번호를 입력해 주세요."); return; }
 
-            // 1. 관리자 여부를 가장 먼저 확인
+            // 1. 관리자 체크
             if (id === ADMIN_ID && pw === ADMIN_PW) {
-                alert("관리자로 로그인합니다.");
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('admin-section').classList.remove('hidden');
                 return;
             }
 
-            // 2. 관리자가 아니면 일반 유저 검색
-            database.ref('users/' + id).once('value').then((snapshot) => {
+            // 2. 일반 고객 체크
+            database.ref('users/' + id).once('value', (snapshot) => {
                 const user = snapshot.val();
                 if (user && user.pw === pw) {
                     document.getElementById('login-section').classList.add('hidden');
@@ -117,18 +114,16 @@
                     document.getElementById('u-car').innerText = user.carNum;
                     renderUserLogs(user.logs ? Object.values(user.logs).reverse() : []);
                 } else {
-                    alert("정보가 일치하지 않습니다. ID와 비밀번호를 다시 확인하세요.");
+                    alert("정보가 일치하지 않습니다.");
                 }
-            }).catch(e => {
-                alert("데이터베이스 연결 오류!");
             });
         }
 
-        // 나머지 함수들은 기존과 동일 (생략 없이 포함됨)
+        // 관리자 전용: 차량 검색
         function adminSearch() {
             const q = document.getElementById('search-input').value.toUpperCase().trim();
             if(!q) return;
-            database.ref('users/' + q).once('value').then((snapshot) => {
+            database.ref('users/' + q).once('value', (snapshot) => {
                 const user = snapshot.val();
                 if(user) {
                     currentCar = q;
@@ -136,31 +131,42 @@
                     document.getElementById('adm-display-car').innerText = q;
                     const logs = user.logs ? Object.values(user.logs).reverse() : [];
                     document.getElementById('adm-log-table').innerHTML = logs.map(l => `
-                        <tr class="border-b"><td class="py-4 px-2">${l.date}</td><td class="py-4 px-2 font-bold">${l.task}</td><td class="py-4 px-2 text-amber-600">${l.parts || '-'} / ${l.secret || '-'}</td></tr>
+                        <div class="p-4 border-b text-sm">
+                            <span class="text-gray-400 font-mono text-xs">${l.date}</span>
+                            <p class="font-bold">${l.task}</p>
+                            <p class="text-blue-500 text-xs mt-1">${l.parts || ''}</p>
+                        </div>
                     `).join('');
-                } else { alert("해당 차량 정보가 없습니다."); }
+                } else { alert("등록되지 않은 차량입니다."); }
             });
         }
 
+        // 관리자 전용: 기록 추가
         function addLog() {
             const date = document.getElementById('m-date').value;
             const task = document.getElementById('m-task').value;
-            if(!currentCar || !date || !task) { alert("날짜와 정비내용을 입력하세요."); return; }
-            database.ref('users/' + currentCar + '/logs').push({
-                date, task, 
-                parts: document.getElementById('m-parts').value,
-                secret: document.getElementById('m-secret').value
-            }).then(() => { alert("기록 저장 완료!"); adminSearch(); });
+            const parts = document.getElementById('m-parts').value;
+            if(!date || !task) { alert("날짜와 내용을 입력하세요."); return; }
+
+            database.ref('users/' + currentCar + '/logs').push({ date, task, parts })
+            .then(() => {
+                alert("저장되었습니다.");
+                document.getElementById('m-task').value = "";
+                document.getElementById('m-parts').value = "";
+                adminSearch();
+            });
         }
 
+        // 고객용: 이력 렌더링
         function renderUserLogs(logs) {
             const list = document.getElementById('u-log-list');
-            list.innerHTML = logs.length === 0 ? "<p class='text-center opacity-50'>정비 이력이 없습니다.</p>" : 
-            logs.map(l => `
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-left">
-                    <span class="text-blue-600 text-[10px] font-black mb-1 block">${l.date}</span>
-                    <p class="font-bold text-slate-800 text-lg">${l.task}</p>
-                </div>`).join('');
+            if(logs.length === 0) { list.innerHTML = "<p class='text-center py-10 opacity-40 text-sm'>정비 내역이 없습니다.</p>"; return; }
+            list.innerHTML = logs.map(l => `
+                <div class="bg-slate-50 p-5 rounded-2xl border border-white shadow-sm">
+                    <span class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">${l.date}</span>
+                    <p class="font-black text-slate-800 text-lg mt-1">${l.task}</p>
+                </div>
+            `).join('');
         }
     </script>
 </body>
