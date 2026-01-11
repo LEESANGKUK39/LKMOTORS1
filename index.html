@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LKMOTORS - Mercedes-Benz Truck Service</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
+        
+        :root {
+            --benz-black: #050505;
+            --benz-silver: #e5e5e5;
+            --benz-blue: #3b82f6;
+        }
+
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: var(--benz-black); 
+            color: var(--benz-silver); 
+            margin: 0; padding: 20px;
+        }
+
+        .benz-card { 
+            background: linear-gradient(145deg, #121212 0%, #000000 100%); 
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .glass-effect { 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .step-active { color: var(--benz-blue); font-weight: bold; transform: scale(1.1); transition: 0.3s; }
+        .progress-bar { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body>
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10">
+        
+        <section class="benz-card p-10 rounded-[40px] relative overflow-hidden">
+            <div class="flex justify-between items-center mb-12">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Mercedes-Benz_Logo_2010.svg/1024px-Mercedes-Benz_Logo_2010.svg.png" class="w-12 h-12 invert opacity-80">
+                <div class="text-right">
+                    <p class="text-gray-500 text-xs tracking-[0.2em] uppercase mb-1">Service Status</p>
+                    <p class="text-2xl font-bold tracking-tight">서울 88 가 1234 <span class="text-blue-500 text-sm ml-2 font-light">ACTROS</span></p>
+                </div>
+            </div>
+
+            <div class="space-y-12">
+                <div>
+                    <div class="flex justify-between mb-4 items-end">
+                        <span id="status-label" class="px-5 py-1.5 rounded-full bg-blue-600/20 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-widest">입고 확인</span>
+                        <span id="percent-label" class="text-3xl font-light text-blue-500">25%</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-gray-900 rounded-full overflow-hidden">
+                        <div id="progress-line" style="width:25%" class="progress-bar h-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-4 text-center text-[10px] text-gray-600 uppercase tracking-tighter">
+                    <div id="step1" class="step-active"><i class="fas fa-truck-loading text-4xl mb-4"></i><br>입고</div>
+                    <div id="step2"><i class="fas fa-microchip text-4xl mb-4"></i><br>진단</div>
+                    <div id="step3"><i class="fas fa-tools text-4xl mb-4"></i><br>수리</div>
+                    <div id="step4"><i class="fas fa-flag-checkered text-4xl mb-4"></i><br>완료</div>
+                </div>
+
+                <div class="p-6 glass-effect rounded-3xl border-l-4 border-blue-600">
+                    <p class="text-[10px] text-blue-500 font-bold uppercase mb-2 tracking-widest">Mechanic's Note</p>
+                    <p id="mechanic-msg" class="text-sm text-gray-300 leading-relaxed">차량이 입고되어 초기 점검을 준비 중입니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-10 rounded-[40px] text-gray-900 shadow-2xl">
+            <h2 class="text-2xl font-bold mb-10 flex items-center border-b pb-6 border-gray-100">
+                <i class="fas fa-shield-alt mr-4 text-blue-600"></i> LKMOTORS ADMIN
+            </h2>
+            
+            <div class="space-y-10">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">차량 식별 번호 (VIN) 검증</label>
+                    <input type="text" id="vin-input" maxlength="17" placeholder="WDB..." 
+                           class="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none transition font-mono text-lg uppercase">
+                    <p id="vin-feedback" class="mt-3 text-xs font-medium text-gray-400 italic">17자리를 입력해주세요.</p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">정비 단계 강제 업데이트</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="updateStatus(1)" class="p-5 bg-gray-100 font-bold rounded-2xl hover:bg-gray-200 transition active:scale-95 shadow-sm text-sm">1. 입고 확인</button>
+                        <button onclick="updateStatus(2)" class="p-5 bg-gray-100 font-bold rounded-2xl hover:bg-gray-200 transition active:scale-95 shadow-sm text-sm">2. 정밀 진단</button>
+                        <button onclick="updateStatus(3)" class="p-5 bg-gray-100 font-bold rounded-2xl hover:bg-gray-200 transition active:scale-95 shadow-sm text-sm">3. 수리 진행</button>
+                        <button onclick="updateStatus(4)" class="p-5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition active:scale-95 shadow-xl text-sm">4. 최종 완료</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">기사님 메시지 업데이트</p>
+                    <textarea id="admin-input" rows="3" class="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none transition text-sm" placeholder="상세 정비 내용을 입력하세요."></textarea>
+                    <button onclick="sendMsg()" class="mt-5 w-full py-5 bg-gray-900 text-white font-bold rounded-2xl hover:bg-black transition flex items-center justify-center shadow-lg">
+                        <i class="fas fa-sync-alt mr-3"></i> 서버 데이터 실시간 동기화
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // [로직 1] VIN 검증 (validation.ts 내용 통합)
+        const vinInput = document.getElementById('vin-input');
+        const vinFeedback = document.getElementById('vin-feedback');
+
+        vinInput.addEventListener('input', (e) => {
+            const vin = e.target.value.toUpperCase();
+            if (vin.length === 17) {
+                const isBenz = vin.startsWith('WDB') || vin.startsWith('W1T');
+                if (isBenz) {
+                    vinFeedback.innerHTML = "<span class='text-green-600'>✓ 확인된 벤츠 트럭 식별 번호입니다.</span>";
+                } else {
+                    vinFeedback.innerHTML = "<span class='text-orange-500'>⚠ 벤츠 차량 형식이 아닙니다 (WDB/W1T 시작 권장).</span>";
+                }
+            } else {
+                vinFeedback.innerText = `현재 글자 수: ${vin.length} / 17`;
+                vinFeedback.className = "mt-3 text-xs font-medium text-gray-400 italic";
+            }
+        });
+
+        // [로직 2] 실시간 UI 업데이트 시뮬레이션
+        function updateStatus(step) {
+            const progress = document.getElementById('progress-line');
+            const label = document.getElementById('status-label');
+            const percent = document.getElementById('percent-label');
+            const msg = document.getElementById('mechanic-msg');
+
+            // 초기화
+            for(let i=1; i<=4; i++) {
+                document.getElementById('step'+i).className = 'text-gray-700 transition-all';
+            }
+
+            const steps = {
+                1: { w: '25%', l: '입고 확인', p: '25%', m: '차량이 입고되어 점검 대기 중입니다.' },
+                2: { w: '50%', l: '정밀 진단', p: '50%', m: '시스템 스캔 및 세부 고장 원인을 진단하고 있습니다.' },
+                3: { w: '75%', l: '수리 진행', p: '75%', m: '필요한 부품 교체 및 수리 작업을 진행 중입니다.' },
+                4: { w: '100%', l: '최종 완료', p: '100%', m: '모든 정비가 끝났습니다. 즉시 출고 가능합니다.' }
+            };
+
+            const s = steps[step];
+            progress.style.width = s.w;
+            label.innerText = s.l;
+            percent.innerText = s.p;
+            msg.innerText = s.m;
+            document.getElementById('step'+step).className = 'step-active';
+
+            console.log(`[REALTIME DB] Step ${step} 업데이트 완료`);
+        }
+
+        function sendMsg() {
+            const input = document.getElementById('admin-input');
+            const display = document.getElementById('mechanic-msg');
+            if(input.value.trim()) {
+                display.innerText = input.value;
+                input.value = '';
+                alert('데이터베이스에 메시지가 성공적으로 저장되었습니다!');
+            }
+        }
+    </script>
+</body>
+</html>
