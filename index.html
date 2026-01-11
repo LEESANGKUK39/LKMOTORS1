@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LKMOTORS ERP - V20</title>
+    <title>LKMOTORS ERP - Final Stable</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,13 +11,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background: #0f172a; color: #f1f5f9; overflow-x: hidden; }
         
-        /* 탭 제어: active 클래스가 없으면 아예 보이지 않음 */
+        /* 탭 제어 - active가 아니면 절대 안보임 */
         .tab-content { display: none; width: 100%; }
         .tab-content.active { display: flex; }
         .tab-content.active.block-mode { display: block; }
         
-        /* 명세서 스타일 (오직 정비/이력 탭 내부에서만 작동) */
-        .bill-paper { background: white; color: black; padding: 30px; width: 210mm; min-height: 297mm; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
+        /* 명세서 스타일 (정비 탭 전용) */
+        .bill-paper { background: white; color: black; padding: 30px; width: 210mm; min-height: 297mm; margin: 0 auto; }
         .t-logic { width: 100%; border-collapse: collapse; border: 2px solid #000; table-layout: fixed; }
         .t-logic td, .t-logic th { border: 1px solid #000; padding: 5px; font-size: 11px; color: black; height: 32px; vertical-align: middle; }
         .bg-label { background: #f1f5f9; font-weight: 900; text-align: center; }
@@ -32,17 +32,6 @@
     </style>
 </head>
 <body class="pt-16">
-
-    <div id="auth-layer" class="fixed inset-0 bg-slate-950 z-[9999] flex items-center justify-center p-4">
-        <div class="bg-slate-900 p-8 rounded-[40px] border border-white/10 w-full max-w-md shadow-2xl">
-            <h1 class="text-3xl font-black italic text-blue-500 mb-8 text-center">LK MOTORS ERP</h1>
-            <div id="login-box" class="space-y-4">
-                <input type="text" id="uid" placeholder="아이디" class="w-full p-4 bg-slate-800 rounded-2xl outline-none border border-transparent focus:border-blue-500 text-white">
-                <input type="password" id="upw" placeholder="비밀번호" class="w-full p-4 bg-slate-800 rounded-2xl outline-none border border-transparent focus:border-blue-500 text-white">
-                <button onclick="handleLogin()" class="w-full py-4 bg-blue-600 rounded-2xl font-black text-xl text-white">접속하기</button>
-            </div>
-        </div>
-    </div>
 
     <nav class="no-print fixed top-0 left-0 right-0 h-14 bg-slate-900 border-b border-blue-500/30 z-50 flex items-center px-4 justify-between font-bold text-xs">
         <div class="flex items-center gap-2 overflow-x-auto">
@@ -60,26 +49,19 @@
             <div class="bg-slate-900 p-5 rounded-[30px] border border-blue-500/30 shadow-xl">
                 <h3 class="text-blue-400 font-black mb-3 italic">🔎 이력 조회</h3>
                 <input id="search-car" placeholder="차량번호" class="w-full p-3 bg-slate-800 rounded-xl border border-blue-500 uppercase mb-2 outline-none text-white">
-                <div class="grid grid-cols-2 gap-1 mb-2">
-                    <input type="date" id="h-start" class="p-2 bg-slate-800 rounded-lg text-[10px] text-white">
-                    <input type="date" id="h-end" class="p-2 bg-slate-800 rounded-lg text-[10px] text-white">
-                </div>
-                <button onclick="loadPeriodHistory()" class="w-full py-2 bg-blue-600 rounded-xl font-bold text-xs text-white">해당 기간 조회</button>
+                <button onclick="loadPeriodHistory()" class="w-full py-2 bg-blue-600 rounded-xl font-bold text-xs text-white">조회하기</button>
                 <div id="history-list" class="mt-3 space-y-1 max-h-40 overflow-y-auto"></div>
             </div>
 
             <div class="bg-slate-900 p-5 rounded-[30px] border border-white/10 shadow-xl">
                 <h3 class="text-emerald-400 font-black mb-3 italic text-sm">📝 신규 정비 등록</h3>
                 <div class="space-y-2 text-[11px]">
-                    <input id="db-car" placeholder="차량번호" class="w-full p-2 bg-slate-800 rounded-lg border border-emerald-500 uppercase font-bold outline-none text-white">
-                    <div class="grid grid-cols-2 gap-1">
-                        <input id="db-type" placeholder="차량형식" class="p-2 bg-slate-800 rounded-lg text-white">
-                        <input id="db-regdate" placeholder="차량등록일" class="p-2 bg-slate-800 rounded-lg text-white">
-                    </div>
+                    <input id="db-car" placeholder="차량번호" class="w-full p-2 bg-slate-800 rounded-lg border border-emerald-500 uppercase font-bold text-white">
+                    <input id="db-type" placeholder="차량형식" class="w-full p-2 bg-slate-800 rounded-lg text-white">
                     <input id="db-chassis" placeholder="차대번호" class="w-full p-2 bg-slate-800 rounded-lg text-white">
                     <div class="grid grid-cols-1 gap-1 border-t border-white/10 pt-2 text-white">
                         <div class="flex justify-between items-center"><span>입고일</span><input type="date" id="db-in" class="bg-slate-800 rounded p-1"></div>
-                        <div class="flex justify-between items-center text-blue-400"><span>완료일</span><input type="date" id="db-comp" class="bg-slate-800 rounded p-1"></div>
+                        <div class="flex justify-between items-center"><span>완료일</span><input type="date" id="db-comp" class="bg-slate-800 rounded p-1"></div>
                         <div class="flex justify-between items-center text-emerald-400"><span>출고일</span><input type="date" id="db-out" class="bg-slate-800 rounded p-1"></div>
                     </div>
                     <button onclick="saveAndSync()" class="w-full py-3 bg-emerald-600 rounded-xl font-black mt-2 text-white">정비 기록 저장</button>
@@ -94,9 +76,9 @@
                     
                     <table class="t-logic mb-4">
                         <tr>
-                            <td class="bg-label w-24">입고 날짜</td><td><input id="v-date-in" class="input-clean text-center"></td>
-                            <td class="bg-label w-24">완료 날짜</td><td><input id="v-date-comp" class="input-clean text-center"></td>
-                            <td class="bg-label w-24">출고 날짜</td><td><input id="v-date-out" class="input-clean text-center"></td>
+                            <td class="bg-label w-24">입고 날짜</td><td><input id="v-date-in" class="input-clean text-center" readonly></td>
+                            <td class="bg-label w-24">완료 날짜</td><td><input id="v-date-comp" class="input-clean text-center" readonly></td>
+                            <td class="bg-label w-24">출고 날짜</td><td><input id="v-date-out" class="input-clean text-center" readonly></td>
                         </tr>
                     </table>
 
@@ -107,7 +89,7 @@
                         </tr>
                         <tr>
                             <td class="bg-label">차대번호</td><td><input id="v-chassis" class="input-clean"></td>
-                            <td class="bg-label">차량등록일</td><td><input id="v-regdate" class="input-clean"></td>
+                            <td class="bg-label">출고 날짜</td><td><input id="v-regdate" class="input-clean"></td>
                         </tr>
                     </table>
                     
@@ -141,28 +123,12 @@
         </div>
     </main>
 
-    <main id="tab-book" class="tab-content block-mode p-10">
-        <div class="max-w-4xl mx-auto bg-slate-900 rounded-[40px] p-8 border border-white/10">
-            <h2 class="text-2xl font-black text-blue-400 italic mb-8">📅 예약 관리 시스템</h2>
-            <div id="booking-list" class="space-y-3 text-gray-500 text-center py-20">예약 내역 로딩 중...</div>
-        </div>
-    </main>
-
-    <main id="tab-parts" class="tab-content block-mode p-10">
-        <div class="max-w-4xl mx-auto bg-slate-900 rounded-[40px] p-8 border border-white/10">
-            <h2 class="text-2xl font-black text-emerald-400 italic mb-8">📦 부품 재고 현황</h2>
-            <div id="parts-list" class="grid grid-cols-2 gap-4 text-gray-500 text-center py-20">부품 목록 로딩 중...</div>
-        </div>
-    </main>
-
-    <main id="tab-admin" class="tab-content block-mode p-10">
-        <div class="max-w-2xl mx-auto bg-slate-900 rounded-[40px] p-8 border border-orange-500/30">
-            <h2 class="text-2xl font-black text-orange-400 italic mb-8">👑 관리자 승인 대기</h2>
-            <div id="wait-list" class="space-y-3 text-gray-500 text-center py-20">승인 대기자 없음</div>
-        </div>
-    </main>
+    <main id="tab-book" class="tab-content block-mode p-10"><h2 class="text-2xl font-black text-blue-400">📅 예약 관리</h2><div class="mt-10 text-gray-500">예약 내역이 없습니다.</div></main>
+    <main id="tab-parts" class="tab-content block-mode p-10"><h2 class="text-2xl font-black text-emerald-400">📦 부품 관리</h2><div class="mt-10 text-gray-500">재고 내역이 없습니다.</div></main>
+    <main id="tab-admin" class="tab-content block-mode p-10"><h2 class="text-2xl font-black text-orange-400">👑 승인 관리</h2><div class="mt-10 text-gray-500">대기 중인 승인이 없습니다.</div></main>
 
     <script>
+        // 파이어베이스 설정 (기존 정보 유지)
         const firebaseConfig = {
             apiKey: "AIzaSyDhTPGNKNm38PSBdATs9lks0lYu52QrP3A",
             authDomain: "lkmotors-246f1.firebaseapp.com",
@@ -175,45 +141,28 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        window.onload = function() {
-            initRows();
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('h-end').value = today;
-            const lastMonth = new Date(); lastMonth.setMonth(lastMonth.getMonth() - 1);
-            document.getElementById('h-start').value = lastMonth.toISOString().split('T')[0];
-        };
-
-        function handleLogin() {
-            const id = document.getElementById('uid').value, pw = document.getElementById('upw').value;
-            if(id === "sansay333" && pw === "aa272728") {
-                document.getElementById('auth-layer').style.display='none';
-                loadAdminData();
-            } else {
-                alert("로그인 정보가 올바르지 않습니다.");
-            }
-        }
+        window.onload = () => { initRows(); };
 
         function showTab(id) {
-            // 모든 탭 숨김
+            // 모든 탭 숨기기
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            // 선택한 탭 표시
+            // 선택한 탭만 보여주기
             document.getElementById('tab-' + id).classList.add('active');
-            // 버튼 스타일 변경
+            
+            // 버튼 스타일 업데이트
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('bg-blue-600', 'bg-slate-800'));
             document.getElementById('btn-' + id).classList.replace('bg-slate-800', 'bg-blue-600');
         }
 
         function loadPeriodHistory() {
             const car = document.getElementById('search-car').value.toUpperCase();
-            const start = document.getElementById('h-start').value, end = document.getElementById('h-end').value;
             if(!car) return alert("차량번호를 입력하세요.");
-            db.ref('history/'+car).orderByChild('dateComp').startAt(start).endAt(end).on('value', s => {
+            db.ref('history/'+car).on('value', s => {
                 const list = document.getElementById('history-list'); list.innerHTML = "";
-                if(!s.exists()) { list.innerHTML = "<p class='text-center py-4 text-gray-500'>기록 없음</p>"; return; }
                 s.forEach(c => {
-                    list.innerHTML += `<div class="p-3 bg-slate-800 rounded-xl mb-1 cursor-pointer border border-white/5" onclick="fillForm('${car}', '${c.key}')">
+                    list.innerHTML += `<div class="p-3 bg-slate-800 rounded-xl mb-1 cursor-pointer border border-white/10" onclick="fillForm('${car}', '${c.key}')">
                         <div class="text-blue-400 font-bold text-xs">${c.val().dateComp}</div>
-                        <div class="text-white text-[11px] font-bold">₩${c.val().total}</div>
+                        <div class="text-white text-[11px]">₩${c.val().total}</div>
                     </div>`;
                 });
             });
@@ -225,7 +174,7 @@
                 document.getElementById('v-car').value = car;
                 document.getElementById('v-type').value = d.type || "";
                 document.getElementById('v-chassis').value = d.chassis || "";
-                document.getElementById('v-regdate').value = d.regDate || "";
+                document.getElementById('v-regdate').value = d.dateOut || ""; // 출고날짜 고정
                 document.getElementById('v-date-in').value = d.dateIn || "";
                 document.getElementById('v-date-comp').value = d.dateComp || "";
                 document.getElementById('v-date-out').value = d.dateOut || "";
@@ -259,10 +208,9 @@
 
         function saveAndSync() {
             const car = document.getElementById('db-car').value.toUpperCase();
-            if(!car) return alert("차량번호 필수");
+            if(!car) return alert("차량번호를 입력하세요.");
             const data = {
                 type: document.getElementById('db-type').value,
-                regDate: document.getElementById('db-regdate').value,
                 chassis: document.getElementById('db-chassis').value,
                 dateIn: document.getElementById('db-in').value,
                 dateComp: document.getElementById('db-comp').value,
@@ -270,10 +218,8 @@
                 total: document.getElementById('v-total').innerText
             };
             db.ref('history/'+car).push(data);
-            alert("저장 완료");
+            alert("저장 성공");
         }
-        
-        function loadAdminData() { /* 예약/부품/승인 데이터 로딩 로직 */ }
     </script>
 </body>
 </html>
