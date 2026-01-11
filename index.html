@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LKMOTORS ERP - V23</title>
+    <title>LKMOTORS ERP - V24 (Final)</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,13 +23,15 @@
         .day-num { font-size: 11px; font-weight: bold; margin-bottom: 2px; color: #94a3b8; }
         .cal-tag { font-size: 9px; background: #3b82f6; color: white; padding: 1px 3px; border-radius: 3px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* [정비명세서 종이 디자인] */
+        /* [정비명세서 디자인 - 읽기 전용 강조] */
         .bill-paper { background: white; color: black; padding: 30px; width: 210mm; min-height: 297mm; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .t-logic { width: 100%; border-collapse: collapse; border: 2px solid #000; table-layout: fixed; }
         .t-logic td, .t-logic th { border: 1px solid #000; padding: 5px; font-size: 11px; color: black; height: 32px; vertical-align: middle; }
         .bg-label { background: #f8fafc; font-weight: 900; text-align: center; width: 80px; }
         .bg-header { background: #e2e8f0; font-weight: 900; text-align: center; font-size: 12px; }
         .input-clean { width: 100%; border: none; outline: none; font-weight: 700; background: transparent; color: black; }
+        /* 명세서 내 입력창 비활성화 스타일 */
+        .input-clean:read-only { cursor: default; }
         
         @media screen and (max-width: 1024px) { 
             .bill-zoom { transform: scale(0.42); transform-origin: top left; width: 210mm; } 
@@ -69,27 +71,21 @@
     <main id="tab-rep" class="tab-content active p-2 lg:p-6 gap-6">
         <aside class="w-full lg:w-80 no-print space-y-4 shrink-0">
             <div class="bg-slate-900 p-5 rounded-[30px] border border-blue-500/30">
-                <h3 class="text-blue-400 font-black mb-3 italic">🔎 이력 조회</h3>
-                <input id="search-car" placeholder="차량번호" class="w-full p-3 bg-slate-800 rounded-xl border border-blue-500 uppercase mb-2 text-white">
+                <h3 class="text-blue-400 font-black mb-3 italic">🔎 이력 조회 (수정불가)</h3>
+                <input id="search-car" placeholder="차량번호 입력" class="w-full p-3 bg-slate-800 rounded-xl border border-blue-500 uppercase mb-2 text-white">
                 <button onclick="loadPeriodHistory()" class="w-full py-2 bg-blue-600 rounded-xl font-bold text-xs text-white">조회</button>
                 <div id="history-list" class="mt-3 space-y-1 max-h-40 overflow-y-auto pr-1"></div>
             </div>
             
             <div class="bg-slate-900 p-5 rounded-[30px] border border-white/10">
-                <h3 class="text-emerald-400 font-black mb-3 italic text-sm">📝 정보 입력</h3>
-                <div class="space-y-2 text-[11px]">
-                    <input id="db-car" placeholder="차량번호" class="w-full p-2 bg-slate-800 rounded-lg border border-emerald-500 uppercase font-bold text-white">
+                <h3 class="text-gray-400 font-black mb-3 italic text-sm">⚠️ 조회된 정보</h3>
+                <div class="space-y-2 text-[11px] opacity-70">
+                    <input id="db-car" placeholder="차량번호" readonly class="w-full p-2 bg-slate-800 rounded-lg border border-gray-600 uppercase font-bold text-white">
                     <div class="grid grid-cols-2 gap-1">
-                        <input id="db-type" placeholder="차량형식" class="p-2 bg-slate-800 rounded-lg text-white">
-                        <input id="db-regdate" placeholder="차량등록일" class="p-2 bg-slate-800 rounded-lg text-white">
+                        <input id="db-type" placeholder="차량형식" readonly class="p-2 bg-slate-800 rounded-lg text-white">
+                        <input id="db-regdate" placeholder="차량등록일" readonly class="p-2 bg-slate-800 rounded-lg text-white">
                     </div>
-                    <input id="db-chassis" placeholder="차대번호" class="w-full p-2 bg-slate-800 rounded-lg text-white">
-                    <div class="grid grid-cols-1 gap-1 border-t border-white/10 pt-2 text-white">
-                        <div class="flex justify-between items-center"><span>입고일</span><input type="date" id="db-in" class="bg-slate-800 rounded p-1"></div>
-                        <div class="flex justify-between items-center text-blue-400"><span>완료일</span><input type="date" id="db-comp" class="bg-slate-800 rounded p-1"></div>
-                        <div class="flex justify-between items-center text-emerald-400"><span>출고일</span><input type="date" id="db-out" class="bg-slate-800 rounded p-1"></div>
-                    </div>
-                    <button onclick="saveAndSync()" class="w-full py-3 bg-emerald-600 rounded-xl font-black mt-2 text-white">정비 데이터 저장</button>
+                    <input id="db-chassis" placeholder="차대번호" readonly class="w-full p-2 bg-slate-800 rounded-lg text-white">
                 </div>
             </div>
         </aside>
@@ -98,22 +94,21 @@
             <div class="bill-zoom">
                 <div class="bill-paper" id="print-area">
                     <h1 class="text-center text-4xl font-black italic mb-10 underline">정 비 명 세 서</h1>
-                    
                     <table class="t-logic">
                         <tr>
-                            <td class="bg-label">차량번호</td><td><input id="v-car" class="input-clean text-lg font-black uppercase"></td>
-                            <td class="bg-label">차량형식</td><td><input id="v-type" class="input-clean"></td>
+                            <td class="bg-label">차량번호</td><td><input id="v-car" readonly class="input-clean text-lg font-black uppercase"></td>
+                            <td class="bg-label">차량형식</td><td><input id="v-type" readonly class="input-clean"></td>
                         </tr>
                         <tr>
-                            <td class="bg-label">차대번호</td><td><input id="v-chassis" class="input-clean"></td>
-                            <td class="bg-label">차량등록일</td><td><input id="v-regdate" class="input-clean"></td>
+                            <td class="bg-label">차대번호</td><td><input id="v-chassis" readonly class="input-clean"></td>
+                            <td class="bg-label">차량등록일</td><td><input id="v-regdate" readonly class="input-clean"></td>
                         </tr>
                         <tr>
-                            <td class="bg-label">입고날짜</td><td><input id="v-in" class="input-clean"></td>
-                            <td class="bg-label">완료날짜</td><td><input id="v-comp" class="input-clean"></td>
+                            <td class="bg-label">입고날짜</td><td><input id="v-in" readonly class="input-clean"></td>
+                            <td class="bg-label">완료날짜</td><td><input id="v-comp" readonly class="input-clean"></td>
                         </tr>
                         <tr>
-                            <td class="bg-label">출고날짜</td><td colspan="3"><input id="v-out" class="input-clean"></td>
+                            <td class="bg-label">출고날짜</td><td colspan="3"><input id="v-out" readonly class="input-clean"></td>
                         </tr>
                     </table>
 
@@ -128,7 +123,8 @@
                                 <th class="bg-header" style="width: 15%;">금액</th>
                             </tr>
                         </thead>
-                        <tbody id="bill-body"></tbody>
+                        <tbody id="bill-body">
+                            </tbody>
                     </table>
 
                     <div class="mt-12 flex justify-end">
@@ -142,7 +138,6 @@
             </div>
             <div class="flex gap-2 no-print mt-4">
                 <button onclick="window.print()" class="flex-1 bg-slate-800 py-4 rounded-xl font-black text-white">🖨️ 명세서 인쇄</button>
-                <button onclick="initRows()" class="px-6 bg-slate-700 rounded-xl text-xs text-white">표 초기화</button>
             </div>
         </div>
     </main>
@@ -153,7 +148,7 @@
                 <h2 class="text-xl font-black text-blue-400 italic">📅 예약 캘린더</h2>
                 <div class="flex gap-4 items-center">
                     <button onclick="moveMonth(-1)" class="px-3 py-1 bg-slate-700 rounded font-bold">◀</button>
-                    <span id="cal-title" class="text-lg font-black font-mono">2026.01</span>
+                    <span id="cal-title" class="text-lg font-black font-mono"></span>
                     <button onclick="moveMonth(1)" class="px-3 py-1 bg-slate-700 rounded font-bold">▶</button>
                 </div>
             </div>
@@ -175,10 +170,10 @@
                 <div class="space-y-3 mb-6">
                     <input id="bk-car" placeholder="차량번호" class="w-full p-4 bg-slate-800 rounded-2xl border border-blue-500 uppercase font-bold text-white outline-none">
                     <input id="bk-memo" placeholder="정비 내용 (선택)" class="w-full p-4 bg-slate-800 rounded-2xl text-white outline-none text-sm">
-                    <button onclick="saveBooking()" class="w-full py-4 bg-blue-600 rounded-2xl font-black text-lg text-white">예약 등록</button>
+                    <button onclick="saveBooking()" class="w-full py-4 bg-blue-600 rounded-2xl font-black text-lg text-white">새 예약 등록</button>
                 </div>
                 <div class="border-t border-white/10 pt-4">
-                    <h4 class="text-xs font-bold text-gray-500 mb-3">📋 상세 내역 (수정/삭제 가능)</h4>
+                    <h4 class="text-xs font-bold text-gray-500 mb-3">📋 상세 내역 (수정:입력후 자동저장)</h4>
                     <div id="day-res-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
                 </div>
             </div>
@@ -189,8 +184,8 @@
         <div class="bg-slate-900 rounded-[40px] p-8 border border-white/10 w-full">
             <h2 class="text-2xl font-black text-emerald-400 italic mb-8">📦 부품 재고 관리</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-10">
-                <input id="pt-name" placeholder="부품명" class="bg-slate-800 p-4 rounded-2xl text-white border border-white/5 outline-none">
-                <input id="pt-stock" type="number" placeholder="수량" class="bg-slate-800 p-4 rounded-2xl text-white text-center outline-none">
+                <input id="pt-name" placeholder="부품명" class="bg-slate-800 p-4 rounded-2xl text-white outline-none">
+                <input id="pt-stock" type="number" placeholder="수량" class="bg-slate-800 p-4 rounded-2xl text-white text-center">
                 <button onclick="savePart()" class="bg-emerald-600 rounded-2xl font-black text-white">저장</button>
             </div>
             <div id="parts-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -205,7 +200,6 @@
     </main>
 
     <script>
-        // [Firebase 설정]
         const firebaseConfig = {
             apiKey: "AIzaSyDhTPGNKNm38PSBdATs9lks0lYu52QrP3A",
             authDomain: "lkmotors-246f1.firebaseapp.com",
@@ -221,24 +215,15 @@
         let currentViewDate = new Date();
         let selectedDateStr = "";
 
-        // [초기 구동 & 자동 로그인]
+        // [초기 로드 및 자동 로그인 확인]
         window.onload = () => {
-            initRows();
+            initBillRows();
             const savedUser = localStorage.getItem('lk_erp_user');
             if(savedUser) {
                 const user = JSON.parse(savedUser);
                 loginProc(user.role);
             }
         };
-
-        // [탭 전환]
-        function showTab(id) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-' + id).classList.add('active');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('bg-blue-600', 'bg-slate-800'));
-            document.getElementById('btn-' + id).classList.replace('bg-slate-800', 'bg-blue-600');
-            if(id === 'book') renderCalendar();
-        }
 
         // [로그인 로직]
         function handleLogin() {
@@ -252,7 +237,7 @@
                 db.ref('users/'+id).once('value', s => {
                     const u = s.val();
                     if(u && u.pw === pw && u.status === 'approved') loginSuccess('staff', remember);
-                    else alert("아이디/비밀번호 오류 또는 승인 대기중입니다.");
+                    else alert("로그인 정보를 확인하세요.");
                 });
             }
         }
@@ -265,8 +250,8 @@
         function loginProc(role) {
             document.getElementById('auth-layer').style.display='none';
             if(role !== 'admin') document.getElementById('btn-admin').style.display='none';
-            loadAllData();
             renderCalendar();
+            loadPendingUsers();
         }
 
         function handleLogout() {
@@ -274,7 +259,79 @@
             location.reload();
         }
 
-        // [캘린더 및 예약]
+        // [탭 전환]
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('bg-blue-600', 'bg-slate-800'));
+            document.getElementById('btn-' + id).classList.replace('bg-slate-800', 'bg-blue-600');
+            if(id === 'book') renderCalendar();
+        }
+
+        // [정비이력 조회 전용 로직]
+        function initBillRows(data = null) {
+            const b = document.getElementById('bill-body');
+            b.innerHTML = "";
+            const rows = data && data.items ? data.items : Array(15).fill({});
+            
+            rows.forEach(item => {
+                b.innerHTML += `
+                    <tr>
+                        <td><input class="input-clean" readonly value="${item.name || ''}"></td>
+                        <td><input class="input-clean" readonly value="${item.spec || ''}"></td>
+                        <td><input class="input-clean text-center" readonly value="${item.qty || 0}"></td>
+                        <td><input class="input-clean text-right" readonly value="${(item.price || 0).toLocaleString()}"></td>
+                        <td><input class="input-clean text-right" readonly value="${(item.labor || 0).toLocaleString()}"></td>
+                        <td class="text-right font-black">${(item.sum || 0).toLocaleString()}</td>
+                    </tr>`;
+            });
+        }
+
+        function loadPeriodHistory() {
+            const car = document.getElementById('search-car').value.toUpperCase();
+            if(!car) return;
+            db.ref('history/'+car).limitToLast(10).on('value', s => {
+                const list = document.getElementById('history-list');
+                list.innerHTML = "";
+                if(!s.exists()) list.innerHTML = "<p class='text-xs text-gray-500 p-2'>기록 없음</p>";
+                s.forEach(c => {
+                    list.innerHTML += `
+                        <div class="p-2 bg-slate-800 rounded-lg mb-1 text-[11px] flex justify-between cursor-pointer border border-white/5 hover:bg-slate-700" 
+                             onclick="fillBillForm('${car}', '${c.key}')">
+                            <span class="text-blue-400 font-bold">${c.val().dateComp || '날짜미정'}</span>
+                            <span>₩${c.val().total || 0}</span>
+                        </div>`;
+                });
+            });
+        }
+
+        function fillBillForm(car, key) {
+            db.ref('history/'+car+'/'+key).once('value', s => {
+                const d = s.val();
+                // 왼쪽 요약창 (Readonly)
+                document.getElementById('db-car').value = car;
+                document.getElementById('db-type').value = d.type || "";
+                document.getElementById('db-regdate').value = d.regDate || "";
+                document.getElementById('db-chassis').value = d.chassis || "";
+
+                // 명세서 본문 (Readonly)
+                document.getElementById('v-car').value = car;
+                document.getElementById('v-type').value = d.type || "";
+                document.getElementById('v-chassis').value = d.chassis || "";
+                document.getElementById('v-regdate').value = d.regDate || "";
+                document.getElementById('v-in').value = d.dateIn || "";
+                document.getElementById('v-comp').value = d.dateComp || "";
+                document.getElementById('v-out').value = d.dateOut || "";
+                
+                document.getElementById('v-sub').innerText = d.subTotal || "0";
+                document.getElementById('v-vat').innerText = d.vat || "0";
+                document.getElementById('v-total').innerText = d.total || "0";
+
+                initBillRows(d); // 아이템 목록 갱신
+            });
+        }
+
+        // [예약관리 - 일자 수정 및 삭제 기능]
         function renderCalendar() {
             const y = currentViewDate.getFullYear(), m = currentViewDate.getMonth();
             document.getElementById('cal-title').innerText = `${y}.${String(m+1).padStart(2, '0')}`;
@@ -282,6 +339,7 @@
             const lastDate = new Date(y, m + 1, 0).getDate();
             const body = document.getElementById('calendar-body');
             body.innerHTML = "";
+
             for(let i=0; i<firstDay; i++) body.innerHTML += `<div class="cal-day opacity-20"></div>`;
             for(let d=1; d<=lastDate; d++) {
                 const dateStr = `${y}-${String(m+1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -290,17 +348,16 @@
                         <div class="day-num">${d}</div>
                         <div id="tags-${dateStr}" class="flex flex-col"></div>
                     </div>`;
-                fetchDaySummary(dateStr);
+                fetchDayTags(dateStr);
             }
         }
 
-        function fetchDaySummary(dateStr) {
+        function fetchDayTags(dateStr) {
             db.ref('bookings').orderByChild('date').equalTo(dateStr).on('value', s => {
                 const box = document.getElementById('tags-'+dateStr);
-                if(!box) return;
-                box.innerHTML = "";
-                s.forEach(child => {
-                    box.innerHTML += `<div class="cal-tag">${child.val().car}</div>`;
+                if(!box) return; box.innerHTML = "";
+                s.forEach(c => {
+                    box.innerHTML += `<div class="cal-tag">${c.val().car}</div>`;
                 });
             });
         }
@@ -308,46 +365,50 @@
         function clickDate(dateStr) {
             selectedDateStr = dateStr;
             document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
-            document.getElementById('day-'+dateStr).classList.add('selected');
-            document.getElementById('target-date-label').innerText = `📅 ${dateStr} 예약`;
-            loadDayList(dateStr);
+            const target = document.getElementById('day-'+dateStr);
+            if(target) target.classList.add('selected');
+            document.getElementById('target-date-label').innerText = `📅 ${dateStr} 예약 내역`;
+            loadDayBookings(dateStr);
         }
 
         function saveBooking() {
             if(!selectedDateStr) return alert("날짜를 선택하세요.");
             const car = document.getElementById('bk-car').value.toUpperCase();
             const memo = document.getElementById('bk-memo').value;
-            if(!car) return alert("차량번호는 필수입니다.");
+            if(!car) return alert("차량번호 필수");
             db.ref('bookings').push({ date: selectedDateStr, car: car, memo: memo });
             document.getElementById('bk-car').value = "";
             document.getElementById('bk-memo').value = "";
         }
 
-        function loadDayList(dateStr) {
+        function loadDayBookings(dateStr) {
             db.ref('bookings').orderByChild('date').equalTo(dateStr).on('value', s => {
                 const list = document.getElementById('day-res-list');
                 list.innerHTML = "";
                 s.forEach(c => {
-                    const data = c.val();
+                    const d = c.val();
                     list.innerHTML += `
-                        <div class="p-3 bg-slate-800 rounded-xl border border-white/5 group">
-                            <div class="flex justify-between items-center mb-1">
-                                <input onchange="updateBooking('${c.key}', 'car', this.value)" value="${data.car}" class="bg-transparent font-black text-blue-400 outline-none uppercase w-full">
-                                <button onclick="deleteBooking('${c.key}')" class="text-red-500 text-xs font-bold opacity-50 hover:opacity-100">삭제</button>
+                        <div class="p-3 bg-slate-800 rounded-xl border border-white/5 space-y-2">
+                            <div class="flex justify-between">
+                                <input class="bg-transparent font-bold text-blue-400 w-24 outline-none uppercase" value="${d.car}" onchange="updateBooking('${c.key}', 'car', this.value)">
+                                <button onclick="deleteBooking('${c.key}')" class="text-red-500 text-[10px] font-bold">삭제</button>
                             </div>
-                            <input onchange="updateBooking('${c.key}', 'memo', this.value)" value="${data.memo || ''}" placeholder="메모 수정..." class="bg-transparent text-[11px] text-gray-400 outline-none w-full">
+                            <input class="w-full bg-slate-700/50 p-1 rounded text-xs text-white" type="date" value="${d.date}" onchange="updateBooking('${c.key}', 'date', this.value)">
+                            <input class="w-full bg-transparent text-[11px] text-gray-400 outline-none" value="${d.memo || ''}" placeholder="메모 수정" onchange="updateBooking('${c.key}', 'memo', this.value)">
                         </div>`;
                 });
             });
         }
 
-        function updateBooking(key, field, value) {
-            let obj = {}; obj[field] = value;
-            db.ref('bookings/' + key).update(obj);
+        function updateBooking(key, field, val) {
+            let up = {}; up[field] = val;
+            db.ref('bookings/'+key).update(up).then(() => {
+                if(field === 'date') renderCalendar(); // 날짜 변경 시 달력 갱신
+            });
         }
 
         function deleteBooking(key) {
-            if(confirm("이 예약을 삭제하시겠습니까?")) db.ref('bookings/' + key).remove();
+            if(confirm("이 예약을 삭제하시겠습니까?")) db.ref('bookings/'+key).remove();
         }
 
         function moveMonth(v) {
@@ -355,85 +416,7 @@
             renderCalendar();
         }
 
-        // [정비 내역 로직]
-        function initRows() {
-            const b = document.getElementById('bill-body'); b.innerHTML = "";
-            for(let i=0; i<18; i++) {
-                b.innerHTML += `<tr class="i-row">
-                    <td><input class="input-clean"></td><td><input class="input-clean"></td>
-                    <td><input type="number" class="input-clean text-center i-q" value="0" oninput="calc()"></td>
-                    <td><input type="number" class="input-clean text-right i-p" value="0" oninput="calc()"></td>
-                    <td><input type="number" class="input-clean text-right i-l" value="0" oninput="calc()"></td>
-                    <td class="text-right font-black i-s">0</td>
-                </tr>`;
-            }
-            calc();
-        }
-
-        function calc() {
-            let sub = 0;
-            document.querySelectorAll('.i-row').forEach(r => {
-                const q = r.querySelector('.i-q').value||0, p = r.querySelector('.i-p').value||0, l = r.querySelector('.i-l').value||0;
-                const total = (q * p) + parseInt(l); r.querySelector('.i-s').innerText = total.toLocaleString(); sub += total;
-            });
-            document.getElementById('v-sub').innerText = sub.toLocaleString();
-            document.getElementById('v-vat').innerText = Math.floor(sub*0.1).toLocaleString();
-            document.getElementById('v-total').innerText = Math.floor(sub*1.1).toLocaleString();
-        }
-
-        function saveAndSync() {
-            const car = document.getElementById('db-car').value.toUpperCase();
-            if(!car) return alert("차량번호는 필수입니다.");
-            const data = { 
-                type: document.getElementById('db-type').value, 
-                regDate: document.getElementById('db-regdate').value,
-                chassis: document.getElementById('db-chassis').value, 
-                dateIn: document.getElementById('db-in').value,
-                dateComp: document.getElementById('db-comp').value,
-                dateOut: document.getElementById('db-out').value,
-                total: document.getElementById('v-total').innerText 
-            };
-            db.ref('history/'+car).push(data);
-            alert("저장 완료");
-        }
-
-        function loadPeriodHistory() {
-            const car = document.getElementById('search-car').value.toUpperCase();
-            db.ref('history/'+car).limitToLast(10).on('value', s => {
-                const list = document.getElementById('history-list'); list.innerHTML = "";
-                s.forEach(c => {
-                    list.innerHTML += `<div class="p-2 bg-slate-800 rounded-lg mb-1 text-[11px] flex justify-between cursor-pointer border border-white/5" onclick="fillForm('${car}', '${c.key}')">
-                        <span class="text-blue-400 font-bold">${c.val().dateComp || '날짜없음'}</span><span>₩${c.val().total}</span>
-                    </div>`;
-                });
-            });
-        }
-
-        function fillForm(car, key) {
-            db.ref('history/'+car+'/'+key).once('value', s => {
-                const d = s.val();
-                document.getElementById('v-car').value = car;
-                document.getElementById('v-type').value = d.type || "";
-                document.getElementById('v-chassis').value = d.chassis || "";
-                document.getElementById('v-regdate').value = d.regDate || "";
-                document.getElementById('v-in').value = d.dateIn || "";
-                document.getElementById('v-comp').value = d.dateComp || "";
-                document.getElementById('v-out').value = d.dateOut || "";
-            });
-        }
-
-        function loadAllData() {
-            db.ref('users').orderByChild('status').equalTo('pending').on('value', s => {
-                const list = document.getElementById('wait-list'); list.innerHTML = "";
-                s.forEach(c => {
-                    list.innerHTML += `<div class="flex justify-between items-center p-4 bg-slate-800 rounded-2xl">
-                        <span class="text-white">${c.val().name} (${c.key})</span>
-                        <button onclick="db.ref('users/${c.key}').update({status:'approved'})" class="bg-blue-600 px-4 py-1.5 rounded-lg text-xs">승인</button>
-                    </div>`;
-                });
-            });
-        }
-
+        // [부품 및 승인 관리]
         function savePart() {
             const name = document.getElementById('pt-name').value;
             const stock = document.getElementById('pt-stock').value;
@@ -451,6 +434,18 @@
                 </div>`;
             });
         });
+
+        function loadPendingUsers() {
+            db.ref('users').orderByChild('status').equalTo('pending').on('value', s => {
+                const list = document.getElementById('wait-list'); list.innerHTML = "";
+                s.forEach(c => {
+                    list.innerHTML += `<div class="flex justify-between items-center p-4 bg-slate-800 rounded-2xl">
+                        <span class="text-white">${c.val().name} (${c.key})</span>
+                        <button onclick="db.ref('users/${c.key}').update({status:'approved'})" class="bg-blue-600 px-4 py-1.5 rounded-lg text-xs">승인</button>
+                    </div>`;
+                });
+            });
+        }
     </script>
 </body>
 </html>
