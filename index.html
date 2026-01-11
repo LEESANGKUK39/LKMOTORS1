@@ -90,4 +90,134 @@
         <div class="p-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-[35px] text-white shadow-xl mb-8 relative overflow-hidden">
             <p class="text-[10px] font-bold opacity-70 mb-1 tracking-widest uppercase">Plate Number</p>
             <p id="u-car" class="text-4xl font-black"></p>
-            <i class="fas fa-car absolute -right-6 -bottom-6 text-9xl opacity-1
+            <i class="fas fa-car absolute -right-6 -bottom-6 text-9xl opacity-10"></i>
+        </div>
+        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-history text-blue-500"></i>정비 이력</h3>
+        <div id="u-log-list" class="space-y-4"></div>
+    </section>
+
+    <script>
+        // 1. 관리자님이 발급받은 Firebase 설정값
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhTPGNKNm38PSBdATs9lks0lYu52QrP3A",
+            authDomain: "lkmotors-246f1.firebaseapp.com",
+            databaseURL: "https://lkmotors-246f1-default-rtdb.firebaseio.com",
+            projectId: "lkmotors-246f1",
+            storageBucket: "lkmotors-246f1.firebasestorage.app",
+            messagingSenderId: "389443224",
+            appId: "1:389443224:web:c9b78c1afd3abc1c262aed"
+        };
+
+        // 2. 파이어베이스 초기화 체크
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+        const ADMIN_ID = "sansay333";
+        const ADMIN_PW = "aa272728";
+        let currentCar = "";
+
+        // UI 함수
+        function showLogin() {
+            document.getElementById('home-section').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+        }
+        function showRegister() {
+            showLogin();
+            document.getElementById('login-form-area').classList.add('hidden');
+            document.getElementById('register-form-area').classList.remove('hidden');
+        }
+
+        // 로그인 처리
+        function handleLogin() {
+            const id = document.getElementById('login-id').value.trim();
+            const pw = document.getElementById('login-pw').value.trim();
+
+            if (id === ADMIN_ID && pw === ADMIN_PW) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+                return;
+            }
+
+            database.ref('users/' + id).once('value').then((snapshot) => {
+                const user = snapshot.val();
+                if (user && user.pw === pw) {
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('user-section').classList.remove('hidden');
+                    document.getElementById('u-car').innerText = user.carNum;
+                    renderUserLogs(user.logs ? Object.values(user.logs).reverse() : []);
+                } else { alert("차량번호 또는 비밀번호가 틀렸습니다."); }
+            }).catch(e => {
+                console.error(e);
+                alert("연결 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+            });
+        }
+
+        // 가입 신청
+        function handleRegister() {
+            const carNum = document.getElementById('reg-car-num').value.toUpperCase().trim();
+            const pw = document.getElementById('reg-pw').value;
+            const owner = document.getElementById('reg-name').value;
+            if(!carNum || !pw) { alert("필수 정보를 모두 입력하세요."); return; }
+
+            database.ref('users/' + carNum).set({
+                carNum, pw, owner, status: "approved"
+            }).then(() => {
+                alert("가입 성공! 로그인하여 확인하세요.");
+                location.reload();
+            }).catch(e => alert("저장에 실패했습니다."));
+        }
+
+        // 관리자용: 차량 검색
+        function adminSearch() {
+            const q = document.getElementById('search-input').value.toUpperCase().trim();
+            if(!q) return;
+            database.ref('users/' + q).once('value').then((snapshot) => {
+                const user = snapshot.val();
+                if(user) {
+                    currentCar = q;
+                    document.getElementById('admin-detail-area').classList.remove('hidden');
+                    document.getElementById('adm-display-car').innerText = q;
+                    const logs = user.logs ? Object.values(user.logs).reverse() : [];
+                    document.getElementById('adm-log-table').innerHTML = logs.map(l => `
+                        <tr class="border-b">
+                            <td class="py-4 px-2 font-mono text-gray-500">${l.date}</td>
+                            <td class="py-4 px-2 font-bold">${l.task}</td>
+                            <td class="py-4 px-2 text-amber-600 italic bg-amber-50/20">${l.parts || '-'} / ${l.secret || '-'}</td>
+                        </tr>`).join('');
+                } else { alert("찾으시는 차량이 없습니다."); }
+            });
+        }
+
+        // 관리자용: 로그 기록 저장
+        function addLog() {
+            const date = document.getElementById('m-date').value;
+            const task = document.getElementById('m-task').value;
+            const parts = document.getElementById('m-parts').value;
+            const secret = document.getElementById('m-secret').value;
+            if(!currentCar || !date || !task) { alert("날짜와 내용을 입력하세요."); return; }
+
+            database.ref('users/' + currentCar + '/logs').push({ date, task, parts, secret })
+            .then(() => {
+                alert("데이터 저장 완료!");
+                document.getElementById('m-task').value = "";
+                document.getElementById('m-parts').value = "";
+                document.getElementById('m-secret').value = "";
+                adminSearch();
+            });
+        }
+
+        // 고객용: 이력 보기
+        function renderUserLogs(logs) {
+            const list = document.getElementById('u-log-list');
+            if(logs.length === 0) { list.innerHTML = "<p class='text-gray-400 py-10 text-center'>등록된 정비 이력이 없습니다.</p>"; return; }
+            list.innerHTML = logs.map(l => `
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm fade-in relative overflow-hidden text-left">
+                    <span class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black rounded-full uppercase mb-2 inline-block">${l.date}</span>
+                    <p class="font-bold text-slate-800 text-xl">${l.task}</p>
+                    <p class="text-[10px] text-gray-300 mt-4 italic">본 기록은 LKMOTORS에서 공식 인증한 데이터입니다.</p>
+                </div>`).join('');
+        }
+    </script>
+</body>
+</html>
