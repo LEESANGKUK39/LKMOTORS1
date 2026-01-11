@@ -3,139 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LKMOTORS ERP PRO</title>
+    <title>LKMOTORS ERP TOTAL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; }
-        .top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #1e293b; border-bottom: 2px solid #3b82f6; display: flex; height: 60px; align-items: center; }
-        .nav-logo { padding: 0 20px; color: white; font-weight: 900; font-style: italic; cursor: pointer; font-size: 1.2rem; }
+        body { font-family: 'Noto Sans KR', sans-serif; background: #020617; color: #f8fafc; margin: 0; }
+        
+        /* 벤츠 트럭 홈 배경 */
+        .dash-bg {
+            background: linear-gradient(to bottom, rgba(2, 6, 23, 0.4), rgba(2, 6, 23, 0.9)), 
+                        url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover; background-position: center; min-height: 100vh;
+        }
+
+        .top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #1e293b; border-bottom: 2px solid #3b82f6; display: flex; height: 65px; align-items: center; }
+        .nav-logo { padding: 0 25px; color: white; font-weight: 900; font-size: 1.4rem; font-style: italic; cursor: pointer; }
+        .nav-logo span { color: #3b82f6; }
         .nav-btn { flex: 1; height: 100%; font-weight: 800; color: #94a3b8; border-left: 1px solid #334155; }
         .nav-btn.active { background: #3b82f6; color: white; }
-        
-        .tab-content { display: none; padding-top: 70px; min-height: 100vh; }
+
+        .tab-content { display: none; padding-top: 80px; min-height: 100vh; }
         .tab-content.active { display: block; }
 
-        /* 좌우 분할 레이아웃 */
+        /* 레이아웃 */
         .split-container { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; max-width: 1600px; margin: 0 auto; }
-        .info-panel { flex: 1; min-width: 350px; background: rgba(30, 41, 59, 0.7); padding: 20px; rounded-3xl: border: 1px solid #334155; border-radius: 20px; }
-        .bill-panel { flex: 2; min-width: 800px; }
+        .info-panel { flex: 1; min-width: 350px; background: rgba(30, 41, 59, 0.8); padding: 25px; border-radius: 25px; border: 1px solid #3b82f6; height: fit-content; }
+        .bill-panel { flex: 2; min-width: 850px; }
 
-        /* 명세서 양식 */
-        .bill-paper { background: white; color: black; padding: 30px; width: 210mm; margin: 0 auto; border: 1px solid #000; }
+        /* 명세서 */
+        .bill-paper { background: white; color: black; padding: 35px; width: 210mm; margin: 0 auto; border: 1px solid #000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         .t-frame { width: 100%; border-collapse: collapse; border: 1.5px solid #000; margin-bottom: 10px; }
-        .t-frame td, .t-frame th { border: 1px solid #000; padding: 5px; font-size: 12px; }
+        .t-frame td, .t-frame th { border: 1px solid #000; padding: 6px; font-size: 12px; }
         .input-bill { border: none; width: 100%; outline: none; font-weight: bold; background: transparent; }
-        .bg-gray { background: #f1f5f9; font-weight: 900; text-align: center; }
+        .bg-gray { background: #f8fafc; font-weight: 900; text-align: center; }
 
-        /* 재고 관리 테이블 */
-        .st-table { width: 100%; background: white; color: #1e293b; border-radius: 10px; overflow: hidden; }
-        .st-table th { background: #334155; color: white; padding: 12px; font-size: 13px; }
-        .st-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center; font-weight: bold; }
-
-        @media (max-width: 1200px) { .bill-panel { overflow-x: auto; } .bill-paper { transform: scale(0.8); transform-origin: top left; } }
+        /* 재고 테이블 */
+        .st-table { width: 100%; background: white; color: #1e293b; text-align: center; border-collapse: collapse; }
+        .st-table th { background: #1e293b; color: white; padding: 12px; font-size: 13px; }
+        .st-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <nav class="top-nav no-print">
-        <div class="nav-logo" onclick="location.reload()">LK<span>MOTORS</span></div>
-        <button onclick="showT('t-repair')" class="nav-btn active">정비명세서 작성</button>
-        <button onclick="showT('t-history')" class="nav-btn">10년 통합이력</button>
-        <button onclick="showT('t-stock')" class="nav-btn">부품재고 관리</button>
+        <div class="nav-logo" onclick="showT('t-home')">LK<span>MOTORS</span></div>
+        <button onclick="showT('t-repair')" class="nav-btn active" id="btn-repair">정비명세서 작성</button>
+        <button onclick="showT('t-history')" class="nav-btn" id="btn-history">기간별 이력조회</button>
+        <button onclick="showT('t-stock')" class="nav-btn" id="btn-stock">재고/단가 관리</button>
     </nav>
 
-    <section id="t-repair" class="tab-content active">
+    <section id="t-home" class="tab-content active dash-bg">
+        <div class="max-w-6xl mx-auto pt-32 px-6 text-center">
+            <h1 class="text-7xl md:text-9xl font-black italic mb-4">LK MOTORS</h1>
+            <p class="text-2xl text-blue-400 font-bold tracking-widest uppercase">Professional Heavy-Duty Truck Service</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-24">
+                <div class="bg-white/10 backdrop-blur-xl p-10 rounded-[40px] border border-white/10">
+                    <h4 class="text-slate-400 font-bold mb-2">오늘의 작업</h4>
+                    <div id="dash-job-count" class="text-6xl font-black">0</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-xl p-10 rounded-[40px] border border-white/10">
+                    <h4 class="text-slate-400 font-bold mb-2">재고 부족(5개 이하)</h4>
+                    <div id="dash-stock-alert" class="text-6xl font-black text-red-500">0</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="t-repair" class="tab-content">
         <div class="split-container">
             <div class="info-panel no-print">
-                <h3 class="text-xl font-black text-blue-400 mb-6">🛠️ 차량 및 고객 정보</h3>
+                <h3 class="text-xl font-black text-blue-400 mb-6">🔍 차량 정보 불러오기</h3>
                 <div class="space-y-4">
-                    <div><label class="text-xs text-slate-400">차량번호 검색</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="search-car" class="flex-1 p-3 rounded-lg bg-slate-800 border-none font-bold uppercase" placeholder="12가3456">
-                            <button onclick="findCar()" class="px-4 bg-blue-600 rounded-lg font-bold">검색</button>
-                        </div>
+                    <input type="text" id="ext-car" class="w-full p-4 rounded-2xl bg-slate-900 border-2 border-blue-500 font-black text-2xl uppercase text-center" placeholder="차량번호 입력">
+                    <button onclick="findCar()" class="w-full py-4 bg-blue-600 rounded-2xl font-black text-lg">기본 정보 검색</button>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-sm font-bold">
+                        <div>차량형식<input type="text" id="ext-type" class="w-full p-3 bg-slate-900 rounded-xl mt-1 border border-slate-700"></div>
+                        <div>차대번호<input type="text" id="ext-vin" class="w-full p-3 bg-slate-900 rounded-xl mt-1 border border-slate-700 uppercase"></div>
+                        <div>주행거리<input type="number" id="ext-mile" class="w-full p-3 bg-slate-900 rounded-xl mt-1 border border-slate-700"></div>
+                        <div>최초등록<input type="date" id="ext-reg" class="w-full p-3 bg-slate-900 rounded-xl mt-1 border border-slate-700"></div>
                     </div>
-                    <hr class="border-slate-700">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-xs text-slate-400">차량형식</label><input type="text" id="ext-type" oninput="syncInfo()" class="w-full p-3 rounded-lg bg-slate-800"></div>
-                        <div><label class="text-xs text-slate-400">차대번호</label><input type="text" id="ext-vin" oninput="syncInfo()" class="w-full p-3 rounded-lg bg-slate-800 uppercase"></div>
-                        <div><label class="text-xs text-slate-400">주행거리(Km)</label><input type="number" id="ext-mile" oninput="syncInfo()" class="w-full p-3 rounded-lg bg-slate-800"></div>
-                        <div><label class="text-xs text-slate-400">최초등록일</label><input type="date" id="ext-reg" oninput="syncInfo()" class="w-full p-3 rounded-lg bg-slate-800"></div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div><label class="text-xs text-slate-400">입고일</label><input type="date" id="ext-in" oninput="syncInfo()" class="w-full p-2 rounded-lg bg-slate-800 text-xs"></div>
-                        <div><label class="text-xs text-slate-400">완료일</label><input type="date" id="ext-done" oninput="syncInfo()" class="w-full p-2 rounded-lg bg-slate-800 text-xs"></div>
-                        <div><label class="text-xs text-slate-400">출고일</label><input type="date" id="ext-out" oninput="syncInfo()" class="w-full p-2 rounded-lg bg-slate-800 text-xs"></div>
-                    </div>
-                    <button onclick="resetAll()" class="w-full py-3 bg-slate-700 rounded-xl font-bold mt-4">데이터 초기화 (새 차량)</button>
-                    <button id="save-btn" onclick="saveData()" class="w-full py-5 bg-blue-600 rounded-xl font-black text-xl shadow-lg mt-2">정비 기록 저장/수정</button>
+                    <button onclick="pushToBill()" class="w-full py-3 bg-indigo-600 rounded-xl font-black">위 정보를 명세서로 전송</button>
+                    <hr class="border-slate-700 my-6">
+                    <button onclick="saveData()" class="w-full py-6 bg-emerald-600 rounded-2xl font-black text-2xl shadow-xl">최종 정비 데이터 저장</button>
+                    <button onclick="resetBill()" class="w-full py-3 bg-slate-700 rounded-xl font-bold mt-2">명세서 초기화 (새 작업)</button>
                 </div>
             </div>
 
             <div class="bill-panel">
                 <div class="bill-paper" id="print-area">
-                    <h1 class="text-center text-3xl font-black underline italic mb-6">SERVICE INVOICE</h1>
+                    <h2 class="text-center text-4xl font-black underline italic mb-8">SERVICE INVOICE</h2>
                     <table class="t-frame">
                         <tr>
-                            <td class="bg-gray w-24">차량번호</td><td><input id="v-car" class="input-bill text-xl uppercase" readonly></td>
-                            <td class="bg-gray w-24">최초등록일</td><td><input id="v-reg" class="input-bill text-center" readonly></td>
+                            <td class="bg-gray w-28">차량번호</td><td><input id="v-car" class="input-bill text-2xl uppercase font-black"></td>
+                            <td class="bg-gray w-28">최초등록일</td><td><input type="date" id="v-reg" class="input-bill text-center"></td>
                         </tr>
                         <tr>
-                            <td class="bg-gray">차량형식</td><td><input id="v-type" class="input-bill" readonly></td>
-                            <td class="bg-gray">차대번호</td><td><input id="v-vin" class="input-bill uppercase font-mono" readonly></td>
+                            <td class="bg-gray">차량형식</td><td><input id="v-type" class="input-bill"></td>
+                            <td class="bg-gray">차대번호</td><td><input id="v-vin" class="input-bill uppercase font-mono"></td>
                         </tr>
                         <tr>
-                            <td class="bg-gray">주행거리</td><td><input id="v-mile" class="input-bill text-right" readonly></td>
-                            <td class="bg-gray">출고 날짜</td><td><input id="v-date-out-main" class="input-bill text-center" readonly></td>
+                            <td class="bg-gray">주행거리</td><td><input id="v-mile" class="input-bill text-right" placeholder="0 km"></td>
+                            <td class="bg-gray">출고 날짜</td><td><input type="date" id="v-date-out-main" class="input-bill text-center"></td>
                         </tr>
                     </table>
-                    <table class="t-frame text-center text-[10px]">
-                        <tr class="bg-gray"><td>입고 날짜</td><td>완료 날짜</td><td>출고 날짜</td></tr>
+                    <table class="t-frame text-center text-[11px]">
+                        <tr class="bg-gray">
+                            <td>입고 날짜 (Date of 입고)</td><td>완료 날짜 (Date of completion)</td><td>출고 날짜 (Date of 출고)</td>
+                        </tr>
                         <tr>
-                            <td><input id="v-date-in" class="input-bill text-center" readonly></td>
-                            <td><input id="v-date-done" class="input-bill text-center" readonly></td>
-                            <td><input id="v-date-out" class="input-bill text-center" readonly></td>
+                            <td><input type="date" id="v-date-in" class="input-bill text-center"></td>
+                            <td><input type="date" id="v-date-done" class="input-bill text-center"></td>
+                            <td><input type="date" id="v-date-out" class="input-bill text-center"></td>
                         </tr>
                     </table>
                     <table class="t-frame">
-                        <thead class="bg-gray text-[11px]">
-                            <tr><th>정비 및 부품명</th><th class="w-24">품번</th><th class="w-12">수량</th><th class="w-20">단가</th><th class="w-20">공임</th><th class="w-24">합계</th></tr>
+                        <thead class="bg-gray text-[12px]">
+                            <tr><th>정비 및 부품명</th><th class="w-24">품번</th><th class="w-14">수량</th><th class="w-24">단가</th><th class="w-24">공임</th><th class="w-28">합계</th></tr>
                         </thead>
                         <tbody id="bill-items"></tbody>
                     </table>
-                    <div class="flex justify-end font-black border-2 border-black p-2 mt-2">
-                        <span class="mr-4">합계 (VAT포함):</span>
-                        <span class="text-2xl text-blue-700">₩ <span id="grand-total">0</span></span>
+                    <div class="flex justify-end font-black border-4 border-black p-4 mt-4">
+                        <span class="mr-6 text-xl">Grand Total (VAT포함):</span>
+                        <span class="text-4xl text-blue-700">₩ <span id="grand-total">0</span></span>
                     </div>
                 </div>
-                <button onclick="window.print()" class="w-full mt-4 py-3 bg-slate-800 rounded-xl font-bold no-print">명세서 인쇄하기</button>
+                <button onclick="window.print()" class="w-full mt-6 py-4 bg-slate-800 rounded-2xl font-black no-print">명세서 인쇄 (Print)</button>
             </div>
         </div>
     </section>
 
     <section id="t-history" class="tab-content px-6">
-        <div class="max-w-5xl mx-auto space-y-4">
-            <h2 class="text-3xl font-black text-blue-400 mb-6">📅 10년 통합 정비 이력</h2>
-            <div id="history-list" class="grid gap-4"></div>
+        <div class="max-w-6xl mx-auto">
+            <div class="bg-slate-800 p-8 rounded-3xl border border-blue-500 mb-8">
+                <h3 class="text-xl font-black mb-6 text-blue-400">📅 기간 설정 정비 이력 조회</h3>
+                <div class="flex flex-wrap gap-4 items-end">
+                    <div><label class="text-xs font-bold text-slate-400">조회 시작일</label><input type="date" id="h-start" class="w-full p-3 bg-slate-900 rounded-xl mt-1 border border-slate-700"></div>
+                    <div><label class="text-xs font-bold text-slate-400">조회 종료일</label><input type="date" id="h-end" class="w-full p-3 bg-slate-900 rounded-xl mt-1 border border-slate-700"></div>
+                    <div><label class="text-xs font-bold text-slate-400">차량번호(전체조회는 비움)</label><input type="text" id="h-car" class="w-full p-3 bg-slate-900 rounded-xl mt-1 border border-slate-700 uppercase" placeholder="예: 12가3456"></div>
+                    <button onclick="loadFilteredHistory()" class="px-10 py-3 bg-blue-600 rounded-xl font-black text-lg shadow-lg">이력 조회하기</button>
+                </div>
+            </div>
+            <div id="history-results" class="grid gap-4 pb-20"></div>
         </div>
     </section>
 
     <section id="t-stock" class="tab-content px-6">
-        <div class="max-w-6xl mx-auto space-y-6">
-            <div class="bg-slate-800 p-6 rounded-2xl grid grid-cols-5 gap-4 items-end">
-                <div><label class="text-xs">부품명</label><input type="text" id="s-nm" class="w-full p-3 rounded-lg bg-slate-700"></div>
-                <div><label class="text-xs">품번</label><input type="text" id="s-pn" class="w-full p-3 rounded-lg bg-slate-700"></div>
-                <div><label class="text-xs">수량</label><input type="number" id="s-qt" class="w-full p-3 rounded-lg bg-slate-700"></div>
-                <div><label class="text-xs">단가</label><input type="number" id="s-pr" class="w-full p-3 rounded-lg bg-slate-700"></div>
-                <button onclick="updateStock()" class="bg-blue-600 p-3 rounded-lg font-bold">재고 반영</button>
+        <div class="max-w-7xl mx-auto space-y-6">
+            <div class="bg-slate-800 p-8 rounded-[40px] border border-slate-700 grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+                <div><label class="text-xs font-bold text-blue-400">부품명</label><input type="text" id="s-nm" class="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700"></div>
+                <div><label class="text-xs font-bold text-blue-400">품번</label><input type="text" id="s-pn" class="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700"></div>
+                <div><label class="text-xs font-bold text-blue-400">입고수량</label><input type="number" id="s-qt" class="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700" value="0"></div>
+                <div><label class="text-xs font-bold text-blue-400">입고금액(단가)</label><input type="number" id="s-pr" class="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700" value="0"></div>
+                <button onclick="updateStock()" class="py-4 bg-indigo-600 rounded-2xl font-black">부품 입고 처리</button>
             </div>
-            <div class="overflow-hidden rounded-xl border border-slate-700">
+            <div class="overflow-hidden rounded-3xl border border-slate-700 bg-white">
                 <table class="st-table">
                     <thead>
-                        <tr><th>품번</th><th>품명</th><th>최종입고가</th><th>평균단가</th><th>현재고</th><th>관리</th></tr>
+                        <tr>
+                            <th>품번</th><th>부품명</th><th>최종입고일</th>
+                            <th class="bg-emerald-50 text-emerald-700">최종 입고가</th>
+                            <th class="bg-blue-50 text-blue-700">평균 단가</th>
+                            <th>누적입고</th><th>누적출고</th><th class="bg-slate-800 text-white">현재고</th>
+                        </tr>
                     </thead>
                     <tbody id="stock-list"></tbody>
                 </table>
@@ -144,7 +176,7 @@
     </section>
 
     <script>
-        // Firebase 설정
+        // Firebase 설정 (사장님 정보 유지)
         const firebaseConfig = {
             apiKey: "AIzaSyDhTPGNKNm38PSBdATs9lks0lYu52QrP3A",
             authDomain: "lkmotors-246f1.firebaseapp.com",
@@ -157,19 +189,18 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let editKey = null; // 수정 모드 확인용 키
+        let curEditKey = null;
 
-        // 탭 전환
         function showT(id) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            event.target.classList.add('active');
-            if(id === 't-history') loadAllHistory();
+            const btn = document.getElementById('btn-' + id.split('-')[1]);
+            if(btn) btn.classList.add('active');
+            if(id === 't-home') loadDashData();
             if(id === 't-stock') loadStock();
         }
 
-        // 명세서 행 초기화 (15줄)
         function initRows() {
             const b = document.getElementById('bill-items'); b.innerHTML = "";
             for(let i=0; i<15; i++) {
@@ -179,22 +210,9 @@
                     <td><input type="number" class="i-qt input-bill text-center" value="0" oninput="calc()"></td>
                     <td><input type="number" class="i-pr input-bill text-right" value="0" oninput="calc()"></td>
                     <td><input type="number" class="i-lb input-bill text-right" value="0" oninput="calc()"></td>
-                    <td class="i-sum text-right font-black pr-1 bg-slate-50">0</td>
+                    <td class="i-sum text-right font-black pr-2 bg-slate-50">0</td>
                 </tr>`;
             }
-        }
-
-        // 외부 입력창 -> 명세서 내부 데이터 동기화
-        function syncInfo() {
-            document.getElementById('v-car').value = document.getElementById('search-car').value.toUpperCase();
-            document.getElementById('v-type').value = document.getElementById('ext-type').value;
-            document.getElementById('v-vin').value = document.getElementById('ext-vin').value.toUpperCase();
-            document.getElementById('v-mile').value = document.getElementById('ext-mile').value;
-            document.getElementById('v-reg').value = document.getElementById('ext-reg').value;
-            document.getElementById('v-date-in').value = document.getElementById('ext-in').value;
-            document.getElementById('v-date-done').value = document.getElementById('ext-done').value;
-            document.getElementById('v-date-out').value = document.getElementById('ext-out').value;
-            document.getElementById('v-date-out-main').value = document.getElementById('ext-out').value;
         }
 
         function calc() {
@@ -208,138 +226,167 @@
             return vt;
         }
 
-        // 저장 및 수정 로직 (재고 연동 포함)
-        async function saveData() {
-            const car = document.getElementById('v-car').value;
-            if(!car) return alert("차량번호를 입력하세요.");
+        function findCar() {
+            const car = document.getElementById('ext-car').value.toUpperCase(); if(!car) return;
+            db.ref('history/'+car).limitToLast(1).once('value', snap => {
+                if(snap.exists()) {
+                    const data = Object.values(snap.val())[0];
+                    document.getElementById('ext-type').value = data.v_type||"";
+                    document.getElementById('ext-vin').value = data.v_vin||"";
+                    document.getElementById('ext-mile').value = data.v_mile||"";
+                    document.getElementById('ext-reg').value = data.v_reg||"";
+                } else { alert("신규 차량 정보입니다."); }
+            });
+        }
 
-            // 1. 기존 데이터가 있다면 재고 복구 (수정 모드일 때만)
-            if(editKey) {
-                const oldSnap = await db.ref(`history/${car}/${editKey}`).once('value');
+        function pushToBill() {
+            document.getElementById('v-car').value = document.getElementById('ext-car').value.toUpperCase();
+            document.getElementById('v-type').value = document.getElementById('ext-type').value;
+            document.getElementById('v-vin').value = document.getElementById('ext-vin').value;
+            document.getElementById('v-mile').value = document.getElementById('ext-mile').value;
+            document.getElementById('v-reg').value = document.getElementById('ext-reg').value;
+            const now = new Date().toISOString().split('T')[0];
+            document.getElementById('v-date-in').value = now;
+            document.getElementById('v-date-done').value = now;
+            document.getElementById('v-date-out').value = now;
+            document.getElementById('v-date-out-main').value = now;
+        }
+
+        async function saveData() {
+            const car = document.getElementById('v-car').value.toUpperCase(); if(!car) return alert("차량번호 필수");
+            
+            // 수정 시 기존 재고 복구 로직
+            if(curEditKey) {
+                const oldSnap = await db.ref(`history/${car}/${curEditKey}`).once('value');
                 const oldData = oldSnap.val();
-                for(let item of oldData.items) {
-                    const sRef = db.ref('stocks/' + (item.pn || item.n));
+                for(let it of oldData.items) {
+                    const sRef = db.ref('stocks/' + (it.pn||it.n));
                     const sSnap = await sRef.once('value');
                     if(sSnap.exists()) {
-                        const cur = sSnap.val();
-                        sRef.update({ out_qt: (cur.out_qt||0) - item.q, cur_qt: (cur.cur_qt||0) + item.q });
+                        const s = sSnap.val();
+                        sRef.update({ out_qt: (s.out_qt||0)-it.q, cur_qt: (s.cur_qt||0)+it.q });
                     }
                 }
             }
 
-            // 2. 새 데이터 정리 및 재고 차감
             const items = [];
             for(let r of document.querySelectorAll('.r-row')) {
                 const n = r.querySelector('.i-nm').value, q = parseInt(r.querySelector('.i-qt').value)||0, pn = r.querySelector('.i-pn').value;
                 if(n && q > 0) {
                     items.push({n, pn, q, p: r.querySelector('.i-pr').value, lb: r.querySelector('.i-lb').value});
-                    const sRef = db.ref('stocks/' + (pn || n));
+                    // 재고 차감
+                    const sRef = db.ref('stocks/' + (pn||n));
                     const sSnap = await sRef.once('value');
                     if(sSnap.exists()) {
-                        const cur = sSnap.val();
-                        sRef.update({ out_qt: (cur.out_qt||0) + q, cur_qt: (cur.cur_qt||0) - q });
+                        const s = sSnap.val();
+                        sRef.update({ out_qt: (s.out_qt||0)+q, cur_qt: (s.cur_qt||0)-q });
                     }
                 }
             }
 
-            const finalData = {
+            const data = {
                 v_car: car, v_type: document.getElementById('v-type').value, v_vin: document.getElementById('v-vin').value,
                 v_mile: document.getElementById('v-mile').value, v_reg: document.getElementById('v-reg').value,
                 date_in: document.getElementById('v-date-in').value, date_done: document.getElementById('v-date-done').value,
-                date_out: document.getElementById('v-date-out').value, total: calc(), items,
-                updatedAt: new Date().toISOString()
+                date_out: document.getElementById('v-date-out').value, total: calc(), items
             };
 
-            const ref = editKey ? db.ref(`history/${car}/${editKey}`) : db.ref(`history/${car}`).push();
-            ref.set(finalData).then(() => {
-                alert(editKey ? "수정 완료!" : "저장 완료!");
-                resetAll();
+            const targetRef = curEditKey ? db.ref(`history/${car}/${curEditKey}`) : db.ref(`history/${car}`).push();
+            targetRef.set(data).then(() => {
+                alert("정비 데이터가 저장되었습니다.");
+                resetBill();
+                loadDashData();
             });
         }
 
-        // 차량 검색 및 불러오기
-        function findCar() {
-            const car = document.getElementById('search-car').value.toUpperCase();
-            if(!car) return;
-            db.ref('history/'+car).limitToLast(1).once('value', snap => {
-                if(snap.exists()) {
-                    const key = Object.keys(snap.val())[0];
-                    loadToForm(car, key, snap.val()[key]);
-                } else { alert("신규 차량입니다. 정보를 입력해주세요."); }
-            });
-        }
-
-        function loadToForm(car, key, d) {
-            editKey = key;
-            document.getElementById('search-car').value = car;
-            document.getElementById('ext-type').value = d.v_type || "";
-            document.getElementById('ext-vin').value = d.v_vin || "";
-            document.getElementById('ext-mile').value = d.v_mile || "";
-            document.getElementById('ext-reg').value = d.v_reg || "";
-            document.getElementById('ext-in').value = d.date_in || "";
-            document.getElementById('ext-done').value = d.date_done || "";
-            document.getElementById('ext-out').value = d.date_out || "";
-            syncInfo();
-            initRows();
-            const rows = document.querySelectorAll('.r-row');
-            d.items.forEach((it, i) => {
-                if(rows[i]) {
-                    rows[i].querySelector('.i-nm').value = it.n;
-                    rows[i].querySelector('.i-pn').value = it.pn;
-                    rows[i].querySelector('.i-qt').value = it.q;
-                    rows[i].querySelector('.i-pr').value = it.p;
-                    rows[i].querySelector('.i-lb').value = it.lb;
-                }
-            });
-            calc();
-            document.getElementById('save-btn').innerText = "정비 기록 수정하기";
-            document.getElementById('save-btn').classList.replace('bg-blue-600', 'bg-green-600');
-        }
-
-        function resetAll() {
-            editKey = null;
-            document.getElementById('search-car').value = "";
-            document.querySelectorAll('.info-panel input').forEach(i => i.value = "");
+        function resetBill() {
             document.querySelectorAll('.input-bill').forEach(i => i.value = "");
-            document.getElementById('save-btn').innerText = "정비 기록 저장";
-            document.getElementById('save-btn').classList.replace('bg-green-600', 'bg-blue-600');
-            initRows(); calc();
+            initRows(); calc(); curEditKey = null;
         }
 
-        function loadAllHistory() {
-            db.ref('history').on('value', snap => {
-                let h = "";
+        function loadFilteredHistory() {
+            const start = document.getElementById('h-start').value, end = document.getElementById('h-end').value, filterCar = document.getElementById('h-car').value.toUpperCase();
+            if(!start || !end) return alert("날짜 범위를 선택하세요.");
+
+            db.ref('history').once('value', snap => {
+                let html = "";
                 snap.forEach(carSnap => {
                     const carNo = carSnap.key;
-                    carSnap.forEach(recordSnap => {
-                        const d = recordSnap.val();
-                        h += `<div class="p-5 bg-slate-800 rounded-2xl flex justify-between items-center border border-slate-700">
-                            <div><b class="text-blue-400 text-xl">${carNo}</b> <span class="text-sm opacity-50 ml-2">${d.date_out}</span>
-                                <p class="text-xs mt-1 text-slate-300">${d.items.map(i => i.n).join(', ')}</p>
-                            </div>
-                            <div class="text-right"><b class="text-xl">₩${d.total.toLocaleString()}</b><br>
-                                <button onclick="showT('t-repair'); loadToForm('${carNo}','${recordSnap.key}', ${JSON.stringify(d).replace(/"/g, '&quot;')})" class="bg-blue-600 px-4 py-1 rounded-lg text-xs mt-2 font-bold">수정/불러오기</button>
-                            </div>
-                        </div>`;
+                    if(filterCar && carNo !== filterCar) return;
+                    carSnap.forEach(recSnap => {
+                        const d = recSnap.val();
+                        if(d.date_out >= start && d.date_out <= end) {
+                            html += `<div class="p-6 bg-slate-800 rounded-3xl border-l-8 border-blue-600 flex justify-between items-center shadow-lg">
+                                <div><b class="text-blue-400 text-xl">${carNo}</b> <span class="text-xs opacity-50 ml-2">${d.date_out}</span>
+                                <p class="text-sm mt-1 text-slate-300">주행: ${d.v_mile} Km | 항목: ${d.items.map(i => i.n).join(', ')}</p></div>
+                                <div class="text-right"><b class="text-2xl">₩${d.total.toLocaleString()}</b><br>
+                                <button onclick="loadToRepair('${carNo}', '${recSnap.key}')" class="bg-blue-600 px-5 py-2 rounded-xl text-xs mt-2 font-black">명세서로 불러오기(수정)</button></div>
+                            </div>`;
+                        }
                     });
                 });
-                document.getElementById('history-list').innerHTML = h || "<p class='text-center opacity-30'>기록이 없습니다.</p>";
+                document.getElementById('history-results').innerHTML = html || "<p class='text-center opacity-30'>조회 결과가 없습니다.</p>";
             });
         }
 
-        // 재고 관리 로직 (생략 없이 작동)
+        function loadToRepair(car, key) {
+            db.ref(`history/${car}/${key}`).once('value', s => {
+                const d = s.val(); curEditKey = key; showT('t-repair');
+                document.getElementById('v-car').value = car; document.getElementById('v-type').value = d.v_type;
+                document.getElementById('v-vin').value = d.v_vin; document.getElementById('v-mile').value = d.v_mile;
+                document.getElementById('v-reg').value = d.v_reg; document.getElementById('v-date-in').value = d.date_in;
+                document.getElementById('v-date-done').value = d.date_done; document.getElementById('v-date-out').value = d.date_out;
+                document.getElementById('v-date-out-main').value = d.date_out;
+                initRows(); const rows = document.querySelectorAll('.r-row');
+                d.items.forEach((it, i) => { if(rows[i]) {
+                    rows[i].querySelector('.i-nm').value=it.n; rows[i].querySelector('.i-pn').value=it.pn;
+                    rows[i].querySelector('.i-qt').value=it.q; rows[i].querySelector('.i-pr').value=it.p; rows[i].querySelector('.i-lb').value=it.lb;
+                }});
+                calc();
+            });
+        }
+
         async function updateStock() {
             const nm = document.getElementById('s-nm').value, pn = document.getElementById('s-pn').value;
             const q = parseInt(document.getElementById('s-qt').value)||0, p = parseInt(document.getElementById('s-pr').value)||0;
-            if(!nm) return;
+            if(!nm) return alert("부품명 입력 필수");
             const ref = db.ref('stocks/'+(pn||nm));
             const snap = await ref.once('value');
             if(snap.exists()) {
-                const cur = snap.val();
-                const totalQ = (cur.cur_qt||0) + q;
-                const avgP = Math.floor(((cur.cur_qt * (cur.avg_p||0)) + (q * p)) / totalQ);
-                ref.update({ nm, pn, last_p: p, avg_p: avgP, in_qt: (cur.in_qt||0)+q, cur_qt: totalQ });
+                const s = snap.val(); const totalQ = (s.cur_qt||0)+q;
+                const avgP = totalQ > 0 ? Math.floor(((s.cur_qt*(s.avg_p||0))+(q*p))/totalQ) : p;
+                ref.update({ nm, pn, last_p: p, avg_p: avgP, in_qt: (s.in_qt||0)+q, cur_qt: totalQ, date: new Date().toISOString().split('T')[0] });
             } else {
-                ref.set({ nm, pn, last_p: p, avg_p: p, in_qt: q, out_qt: 0, cur_qt: q });
+                ref.set({ nm, pn, last_p: p, avg_p: p, in_qt: q, out_qt: 0, cur_qt: q, date: new Date().toISOString().split('T')[0] });
             }
-            alert("재
+            alert("입고 완료"); loadStock();
+        }
+
+        function loadStock() {
+            db.ref('stocks').on('value', snap => {
+                let h = "";
+                snap.forEach(sSnap => { const s = sSnap.val();
+                    h += `<tr><td>${s.pn||'-'}</td><td class="text-left">${s.nm}</td><td>${s.date||'-'}</td>
+                        <td class="text-emerald-600">₩${(s.last_p||0).toLocaleString()}</td><td class="text-blue-600">₩${(s.avg_p||0).toLocaleString()}</td>
+                        <td>${s.in_qt}</td><td>${s.out_qt||0}</td><td class="bg-slate-800 text-white">${s.cur_qt}</td></tr>`;
+                });
+                document.getElementById('stock-list').innerHTML = h;
+            });
+        }
+
+        function loadDashData() {
+            const today = new Date().toISOString().split('T')[0];
+            db.ref('history').once('value', snap => {
+                let count = 0; snap.forEach(car => car.forEach(rec => { if(rec.val().date_out === today) count++; }));
+                document.getElementById('dash-job-count').innerText = count;
+            });
+            db.ref('stocks').once('value', snap => {
+                let alertCount = 0; snap.forEach(s => { if(s.val().cur_qt <= 5) alertCount++; });
+                document.getElementById('dash-stock-alert').innerText = alertCount;
+            });
+        }
+
+        window.onload = () => { initRows(); loadDashData(); };
+    </script>
+</body>
+</html>
