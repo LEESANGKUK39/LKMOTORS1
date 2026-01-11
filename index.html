@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LKMOTORS Admin System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 p-4 md:p-10">
+
+    <section class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-[40px] text-gray-900 shadow-2xl">
+        <h2 class="text-2xl font-bold mb-10 flex items-center border-b pb-6 border-gray-100">
+            <i class="fas fa-shield-alt mr-4 text-blue-600"></i> LKMOTORS ADMIN
+        </h2>
+        
+        <div class="space-y-10">
+            <div id="step-search">
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">차량 및 차주 검색</label>
+                <div class="flex gap-2">
+                    <input type="text" id="search-input" placeholder="번호판, 성함, 또는 뒷4자리" 
+                           class="flex-1 p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 outline-none transition text-lg uppercase">
+                    <button onclick="searchVehicle()" class="px-8 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition active:scale-95 shadow-lg shadow-blue-200">검색</button>
+                </div>
+                
+                <div id="search-results" class="hidden mt-4 border rounded-2xl overflow-hidden bg-white border-gray-200 shadow-xl">
+                    <p class="p-3 text-[10px] font-bold text-gray-400 bg-gray-100 border-b uppercase tracking-widest">검색 결과 (클릭하여 선택)</p>
+                    <ul id="results-list" class="divide-y divide-gray-100 max-h-48 overflow-y-auto"></ul>
+                </div>
+            </div>
+
+            <div id="step-details" class="hidden border-t pt-10 border-gray-100 space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-blue-600 uppercase tracking-widest">차량 상세 정보</h3>
+                    <button onclick="toggleHistory()" class="text-[10px] font-bold text-gray-400 hover:text-blue-500 transition border-b border-gray-300">
+                        <i class="fas fa-history mr-1"></i> 이전 차주 기록 보기
+                    </button>
+                </div>
+
+                <div id="history-panel" class="hidden p-4 bg-gray-50 rounded-2xl border border-gray-100 text-xs space-y-2">
+                    <p class="font-bold text-gray-500 mb-2">[과거 소유주 이력]</p>
+                    <ul id="history-list" class="space-y-1 text-gray-400 italic"></ul>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">차량번호 (고유키)</label>
+                        <input type="text" id="detail-car-number" class="w-full p-4 bg-gray-100 border-2 border-gray-100 rounded-xl outline-none font-bold" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">차량 식별 번호 (VIN)</label>
+                        <input type="text" id="detail-vin" maxlength="17" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-mono uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">최초 등록일</label>
+                        <input type="date" id="detail-reg-date" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">현재 차주 성함</label>
+                        <input type="text" id="detail-owner-name" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">차주 연락처</label>
+                        <input type="tel" id="detail-owner-phone" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">도로명 주소 (신주소)</label>
+                        <input type="text" id="detail-address-new" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">지번 주소 (구주소)</label>
+                        <input type="text" id="detail-address-old" class="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-6 relative">
+                    <button onclick="saveVehicleData()" class="w-full py-5 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition shadow-xl flex items-center justify-center gap-3 active:scale-95">
+                        <i class="fas fa-save"></i> 차량 정보 저장 및 업데이트
+                    </button>
+                    <div id="save-toast" class="hidden absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg animate-bounce">
+                        ✓ 성공적으로 업데이트되었습니다!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // [고객 데이터베이스] 엑셀 대용으로 사용할 초기 데이터 객체(Object)
+        let mockDB = [
+            { 
+                carNum: "12가3456", vin: "WDB12345678901234", reg: "2023-01-01", 
+                owner: "홍길동", phone: "010-1111-2222", 
+                addrNew: "서울특별시 강남구 테헤란로 123", 
+                addrOld: "서울특별시 강남구 역삼동 789-10",
+                history: ["이전차주: 이순신 (2021-2023)", "이전차주: 강감찬 (2019-2021)"]
+            },
+            { 
+                carNum: "77무3456", vin: "WDB98765432109876", reg: "2020-05-15", 
+                owner: "김철수", phone: "010-3333-4444", 
+                addrNew: "경기도 수원시 팔달구 효원로 1", 
+                addrOld: "경기도 수원시 팔달구 매산로1가 10-5",
+                history: ["이전차주: 박명수 (2020-2022)"]
+            },
+            { 
+                carNum: "55버9999", vin: "W1T11223344556677", reg: "2024-02-10", 
+                owner: "이영희", phone: "010-5555-6666", 
+                addrNew: "부산광역시 해운대구 해운대해변로 264", 
+                addrOld: "부산광역시 해운대구 우동 627-1",
+                history: []
+            }
+        ];
+
+        // 검색 기능: 번호 전체, 뒷4자리, 성함 모두 대응
+        function searchVehicle() {
+            const query = document.getElementById('search-input').value.replace(/\s/g, '');
+            const resultsArea = document.getElementById('search-results');
+            const list = document.getElementById('results-list');
+            
+            if(!query) { alert("검색어를 입력해주세요."); return; }
+
+            const found = mockDB.filter(v => 
+                v.carNum.includes(query) || v.owner.includes(query)
+            );
+
+            list.innerHTML = "";
+            if (found.length > 0) {
+                resultsArea.classList.remove('hidden');
+                found.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = "p-4 hover:bg-blue-50 cursor-pointer transition flex justify-between items-center";
+                    li.innerHTML = `<div><p class="font-bold text-sm">${item.carNum}</p><p class="text-[10px] text-gray-400">${item.owner} | ${item.phone}</p></div><i class="fas fa-chevron-right text-gray-300"></i>`;
+                    li.onclick = () => selectVehicle(item);
+                    list.appendChild(li);
+                });
+            } else {
+                if(confirm("검색 결과가 없습니다. 신규 차량으로 등록하시겠습니까?")) {
+                    document.getElementById('step-details').classList.remove('hidden');
+                    clearForm();
+                    document.getElementById('detail-car-number').readOnly = false; // 신규 등록 시에는 차량번호 입력 가능
+                    document.getElementById('detail-car-number').value = query;
+                }
+            }
+        }
+
+        // 목록에서 선택 시 상세 정보 뿌려주기
+        function selectVehicle(data) {
+            document.getElementById('step-details').classList.remove('hidden');
+            document.getElementById('search-results').classList.add('hidden');
+            document.getElementById('detail-car-number').readOnly = true;
+            
+            // 데이터 매핑
+            document.getElementById('detail-car-number').value = data.carNum;
+            document.getElementById('detail-vin').value = data.vin;
+            document.getElementById('detail-reg-date').value = data.reg;
+            document.getElementById('detail-owner-name').value = data.owner;
+            document.getElementById('detail-owner-phone').value = data.phone;
+            document.getElementById('detail-address-new').value = data.addrNew;
+            document.getElementById('detail-address-old').value = data.addrOld;
+
+            // 히스토리 리스트 생성
+            const hList = document.getElementById('history-list');
+            if(data.history.length > 0) {
+                hList.innerHTML = data.history.map(h => `<li>• ${h}</li>`).join('');
+            } else {
+                hList.innerHTML = "<li>과거 이력이 없습니다.</li>";
+            }
+        }
+
+        function toggleHistory() {
+            const panel = document.getElementById('history-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        // 저장 버튼 클릭 시 (토스트 메시지)
+        function saveVehicleData() {
+            const toast = document.getElementById('save-toast');
+            // 여기서 실제 데이터베이스(Supabase 등)로 '객체'를 전송하게 됩니다.
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function clearForm() {
+            const fields = ['detail-car-number', 'detail-vin', 'detail-reg-date', 'detail-owner-name', 'detail-owner-phone', 'detail-address-new', 'detail-address-old'];
+            fields.forEach(f => document.getElementById(f).value = "");
+            document.getElementById('history-list').innerHTML = "<li>기록 없음</li>";
+        }
+    </script>
+</body>
+</html>
