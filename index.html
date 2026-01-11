@@ -1,0 +1,38 @@
+
+/* ...생략... */
+    .btn-metallic:hover {
+        background: linear-gradient(180deg, #444 0%, #222 100%);
+        border-color: #666;
+    }
+    </style> </head> ```
+
+### 🛡️ 2단계: 차대번호(VIN) 검증 연결
+
+이미 입력창(`id="vin-input"`)과 피드백 공간(`id="vin-feedback"`)은 완벽하게 만드셨습니다! 이제 이 입력창에 글자를 쳤을 때 "벤츠 차량인지" 검사하는 **똑똑한 두뇌**를 연결할 차례입니다.
+
+하단의 `<script>` 태그 안에 아래 로직을 추가하면 바로 작동할 거예요.
+
+```javascript
+// 스크립트 태그 내부에 추가
+const vinInput = document.getElementById('vin-input');
+const vinFeedback = document.getElementById('vin-feedback');
+
+vinInput.addEventListener('input', (e) => {
+    const vin = e.target.value.toUpperCase();
+    e.target.value = vin; // 소문자를 대문자로 자동 변환
+
+    if (vin.length === 17) {
+        // 벤츠 식별자 확인
+        const isBenz = vin.startsWith('WDB') || vin.startsWith('W1T');
+        if (isBenz) {
+            vinFeedback.innerText = "✓ 확인된 벤츠 트럭 번호입니다.";
+            vinFeedback.className = "mt-2 text-xs font-semibold text-green-400";
+        } else {
+            vinFeedback.innerText = "⚠ 벤츠 차량 형식이 아닙니다.";
+            vinFeedback.className = "mt-2 text-xs font-semibold text-orange-400";
+        }
+    } else {
+        vinFeedback.innerText = `17자리를 입력해주세요 (${vin.length}/17)`;
+        vinFeedback.className = "mt-2 text-xs font-semibold text-gray-400";
+    }
+});
