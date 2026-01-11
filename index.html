@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LKMOTORS ERP - V23</title>
+    <title>LKMOTORS ERP - V22</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +23,7 @@
         .day-num { font-size: 11px; font-weight: bold; margin-bottom: 2px; color: #94a3b8; }
         .cal-tag { font-size: 9px; background: #3b82f6; color: white; padding: 1px 3px; border-radius: 3px; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
         
-        /* [정비명세서 디자인 - 사장님 요청 양식 고정] */
+        /* [정비명세서 디자인] */
         .bill-paper { background: white; color: black; padding: 30px; width: 210mm; min-height: 297mm; margin: 0 auto; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
         .t-logic { width: 100%; border-collapse: collapse; border: 2px solid #000; table-layout: fixed; }
         .t-logic td, .t-logic th { border: 1px solid #000; padding: 5px; font-size: 11px; color: black; height: 32px; vertical-align: middle; }
@@ -42,14 +42,10 @@
 
     <div id="auth-layer" class="fixed inset-0 bg-slate-950 z-[9999] flex items-center justify-center p-4">
         <div class="bg-slate-900 p-8 rounded-[40px] border border-white/10 w-full max-w-md shadow-2xl">
-            <h1 class="text-3xl font-black italic text-blue-500 mb-8 text-center">LK MOTORS ERP</h1>
+            <h1 class="text-3xl font-black italic text-blue-500 mb-8 text-center text-white">LK MOTORS ERP</h1>
             <div class="space-y-4">
                 <input type="text" id="uid" placeholder="아이디" class="w-full p-4 bg-slate-800 rounded-2xl outline-none text-white">
                 <input type="password" id="upw" placeholder="비밀번호" class="w-full p-4 bg-slate-800 rounded-2xl outline-none text-white">
-                <div class="flex items-center gap-2 px-2 text-sm text-gray-400">
-                    <input type="checkbox" id="save-info" class="w-4 h-4 accent-blue-500">
-                    <label for="save-info">로그인 정보 저장 (자동 로그인)</label>
-                </div>
                 <button onclick="handleLogin()" class="w-full py-4 bg-blue-600 rounded-2xl font-black text-xl text-white">접속하기</button>
             </div>
         </div>
@@ -63,7 +59,7 @@
             <button onclick="showTab('parts')" id="btn-parts" class="tab-btn px-4 py-1.5 bg-slate-800 rounded-full shrink-0 text-white">부품관리</button>
             <button onclick="showTab('admin')" id="btn-admin" class="tab-btn px-4 py-1.5 bg-slate-800 rounded-full text-orange-400 shrink-0">승인관리</button>
         </div>
-        <button onclick="logout()" class="text-red-500 font-black">LOGOUT</button>
+        <button onclick="location.reload()" class="text-red-500 font-black">LOGOUT</button>
     </nav>
 
     <main id="tab-rep" class="tab-content active p-2 lg:p-6 gap-6">
@@ -82,6 +78,10 @@
                 <h3 class="text-emerald-400 font-black mb-3 italic text-sm">📝 정비 등록</h3>
                 <div class="space-y-2 text-[11px]">
                     <input id="db-car" placeholder="차량번호" class="w-full p-2 bg-slate-800 rounded-lg border border-emerald-500 uppercase font-bold outline-none text-white">
+                    <div class="grid grid-cols-2 gap-1">
+                        <input id="db-name" placeholder="차주성함" class="p-2 bg-slate-800 rounded-lg outline-none text-white">
+                        <input id="db-phone" placeholder="연락처" class="p-2 bg-slate-800 rounded-lg outline-none text-white">
+                    </div>
                     <div class="grid grid-cols-2 gap-1">
                         <input id="db-type" placeholder="차량형식" class="p-2 bg-slate-800 rounded-lg outline-none text-white">
                         <input id="db-regdate" placeholder="차량등록일" class="p-2 bg-slate-800 rounded-lg outline-none text-white">
@@ -116,15 +116,18 @@
                         <tbody id="bill-body"></tbody>
                     </table>
                     <div class="mt-12 flex justify-end">
-                        <div class="w-72 border-4 border-black p-4 text-right text-black font-bold">
-                            <div>공급가액: <span id="v-sub">0</span></div>
-                            <div class="border-b-2 border-black pb-2">부가세: <span id="v-vat">0</span></div>
+                        <div class="w-72 border-4 border-black p-4 text-right text-black">
+                            <div class="text-[11px] font-bold">공급가액: <span id="v-sub">0</span></div>
+                            <div class="text-[11px] font-bold border-b-2 border-black pb-2">부가세: <span id="v-vat">0</span></div>
                             <div class="text-3xl font-black text-blue-700 pt-2 font-mono">₩ <span id="v-total">0</span></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="flex gap-2 no-print mt-4"><button onclick="window.print()" class="flex-1 bg-slate-800 py-4 rounded-xl font-black text-white">🖨️ 명세서 인쇄</button><button onclick="initRows()" class="px-6 bg-slate-700 rounded-xl text-xs text-white">표 초기화</button></div>
+            <div class="flex gap-2 no-print mt-4">
+                <button onclick="window.print()" class="flex-1 bg-slate-800 py-4 rounded-xl font-black text-white">🖨️ 명세서 인쇄</button>
+                <button onclick="initRows()" class="px-6 bg-slate-700 rounded-xl text-xs text-white">표 초기화</button>
+            </div>
         </div>
     </main>
 
@@ -149,18 +152,41 @@
             </div>
             <div id="calendar-body" class="cal-grid"></div>
         </div>
-        <aside class="w-full lg:w-96 bg-slate-900 p-6 rounded-[30px] border border-blue-500/30">
-            <h3 id="target-date-label" class="text-blue-400 font-black mb-4 italic">선택된 날짜가 없습니다</h3>
-            <div class="space-y-3 mb-6">
-                <input id="bk-car" placeholder="차량번호" class="w-full p-4 bg-slate-800 rounded-2xl border border-blue-500 uppercase font-bold outline-none text-white">
-                <input id="bk-memo" placeholder="정비 내용 (선택)" class="w-full p-4 bg-slate-800 rounded-2xl outline-none text-white text-sm">
-                <button onclick="saveBooking()" class="w-full py-4 bg-blue-600 rounded-2xl font-black text-lg text-white">새 예약 등록</button>
-            </div>
-            <div class="border-t border-white/10 pt-4">
-                <h4 class="text-xs font-bold text-gray-500 mb-3 uppercase">List</h4>
-                <div id="day-res-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+
+        <aside class="w-full lg:w-96 space-y-4">
+            <div class="bg-slate-900 p-6 rounded-[30px] border border-blue-500/30 shadow-2xl">
+                <h3 id="target-date-label" class="text-blue-400 font-black mb-4 italic">선택된 날짜가 없습니다</h3>
+                <div class="space-y-3 mb-6">
+                    <input id="bk-car" placeholder="차량번호" class="w-full p-4 bg-slate-800 rounded-2xl border border-blue-500 uppercase font-bold outline-none text-white">
+                    <input id="bk-memo" placeholder="정비 내용 (선택)" class="w-full p-4 bg-slate-800 rounded-2xl outline-none text-white text-sm">
+                    <button onclick="saveBooking()" class="w-full py-4 bg-blue-600 rounded-2xl font-black text-lg text-white">새 예약 등록</button>
+                </div>
+                <div class="border-t border-white/10 pt-4">
+                    <h4 class="text-xs font-bold text-gray-500 mb-3">📅 해당 날짜 예약 리스트</h4>
+                    <div id="day-res-list" class="space-y-2 max-h-96 overflow-y-auto">
+                        </div>
+                </div>
             </div>
         </aside>
+    </main>
+
+    <main id="tab-parts" class="tab-content p-4 lg:p-10 max-w-4xl mx-auto">
+        <div class="bg-slate-900 rounded-[40px] p-8 border border-white/10 shadow-2xl w-full">
+            <h2 class="text-2xl font-black text-emerald-400 italic mb-8">📦 부품 재고 관리</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-10">
+                <input id="pt-name" placeholder="부품명" class="bg-slate-800 p-4 rounded-2xl outline-none border border-white/5 text-white">
+                <input id="pt-stock" type="number" placeholder="수량" class="bg-slate-800 p-4 rounded-2xl outline-none text-center border border-white/5 text-white">
+                <button onclick="savePart()" class="bg-emerald-600 rounded-2xl font-black text-white">재고 저장</button>
+            </div>
+            <div id="parts-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+    </main>
+
+    <main id="tab-admin" class="tab-content p-4 lg:p-10 max-w-2xl mx-auto">
+        <div class="bg-slate-900 rounded-[40px] p-8 border border-orange-500/30 shadow-2xl w-full">
+            <h2 class="text-2xl font-black text-orange-400 italic mb-8">👑 관리자 승인 대기</h2>
+            <div id="wait-list" class="space-y-3"></div>
+        </div>
     </main>
 
     <script>
@@ -179,33 +205,11 @@
         let currentViewDate = new Date();
         let selectedDateStr = "";
 
-        // [초기 구동 & 로그인 기억 로직]
+        // [초기 구동]
         window.onload = () => {
-            const savedId = localStorage.getItem('lk-id'), savedPw = localStorage.getItem('lk-pw');
-            if(savedId && savedPw) {
-                document.getElementById('uid').value = savedId;
-                document.getElementById('upw').value = savedPw;
-                document.getElementById('save-info').checked = true;
-            }
             initRows();
             renderCalendar();
         };
-
-        function handleLogin() {
-            const id = document.getElementById('uid').value, pw = document.getElementById('upw').value;
-            const save = document.getElementById('save-info').checked;
-
-            if(id === "sansay333" && pw === "aa272728") {
-                if(save) { localStorage.setItem('lk-id', id); localStorage.setItem('lk-pw', pw); }
-                else { localStorage.removeItem('lk-id'); localStorage.removeItem('lk-pw'); }
-                document.getElementById('auth-layer').style.display='none';
-                loadAllData();
-            } else {
-                alert("정보가 올바르지 않습니다.");
-            }
-        }
-
-        function logout() { localStorage.removeItem('lk-id'); localStorage.removeItem('lk-pw'); location.reload(); }
 
         // [탭 전환]
         function showTab(id) {
@@ -216,27 +220,58 @@
             if(id === 'book') renderCalendar();
         }
 
-        // [예약관리 캘린더 & 수정/삭제]
-        function moveMonth(v) { currentViewDate.setMonth(currentViewDate.getMonth() + v); renderCalendar(); }
+        // [로그인]
+        function handleLogin() {
+            const id = document.getElementById('uid').value, pw = document.getElementById('upw').value;
+            if(id === "sansay333" && pw === "aa272728") { loginProc('admin'); return; }
+            db.ref('users/'+id).once('value', s => {
+                const u = s.val();
+                if(u && u.pw === pw && u.status === 'approved') loginProc('staff');
+                else alert("정보 불일치 또는 승인 대기 중");
+            });
+        }
+        function loginProc(role) {
+            document.getElementById('auth-layer').style.display='none';
+            if(role !== 'admin') document.getElementById('btn-admin').style.display='none';
+            loadAllData();
+        }
+
+        // [캘린더 로직]
+        function moveMonth(v) {
+            currentViewDate.setMonth(currentViewDate.getMonth() + v);
+            renderCalendar();
+        }
 
         function renderCalendar() {
             const y = currentViewDate.getFullYear(), m = currentViewDate.getMonth();
             document.getElementById('cal-title').innerText = `${y}.${String(m+1).padStart(2, '0')}`;
-            const firstDay = new Date(y, m, 1).getDay(), lastDate = new Date(y, m + 1, 0).getDate();
-            const body = document.getElementById('calendar-body'); body.innerHTML = "";
+            
+            const firstDay = new Date(y, m, 1).getDay();
+            const lastDate = new Date(y, m + 1, 0).getDate();
+            const body = document.getElementById('calendar-body');
+            body.innerHTML = "";
+
             for(let i=0; i<firstDay; i++) body.innerHTML += `<div class="cal-day opacity-20"></div>`;
+
             for(let d=1; d<=lastDate; d++) {
                 const dateStr = `${y}-${String(m+1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                body.innerHTML += `<div class="cal-day" id="day-${dateStr}" onclick="clickDate('${dateStr}')"><div class="day-num">${d}</div><div id="tags-${dateStr}"></div></div>`;
+                body.innerHTML += `
+                    <div class="cal-day" id="day-${dateStr}" onclick="clickDate('${dateStr}')">
+                        <div class="day-num">${d}</div>
+                        <div id="tags-${dateStr}" class="flex flex-col"></div>
+                    </div>`;
                 fetchDaySummary(dateStr);
             }
         }
 
         function fetchDaySummary(dateStr) {
             db.ref('bookings').orderByChild('date').equalTo(dateStr).on('value', s => {
-                const box = document.getElementById('tags-'+dateStr); if(!box) return;
+                const box = document.getElementById('tags-'+dateStr);
+                if(!box) return;
                 box.innerHTML = "";
-                s.forEach(c => { box.innerHTML += `<div class="cal-tag">${c.val().car}</div>`; });
+                s.forEach(child => {
+                    box.innerHTML += `<div class="cal-tag">${child.val().car}</div>`;
+                });
             });
         }
 
@@ -244,39 +279,50 @@
             selectedDateStr = dateStr;
             document.querySelectorAll('.cal-day').forEach(el => el.classList.remove('selected'));
             document.getElementById('day-'+dateStr).classList.add('selected');
-            document.getElementById('target-date-label').innerText = `📅 ${dateStr} 예약현황`;
+            document.getElementById('target-date-label').innerText = `📅 ${dateStr} 예약`;
             loadDayList(dateStr);
         }
 
+        // [예약 저장/수정/삭제]
         function saveBooking() {
-            if(!selectedDateStr) return alert("날짜를 선택하세요.");
-            const car = document.getElementById('bk-car').value.toUpperCase(), memo = document.getElementById('bk-memo').value;
-            if(!car) return alert("차량번호 필수!");
+            if(!selectedDateStr) return alert("달력에서 날짜를 먼저 선택하세요.");
+            const car = document.getElementById('bk-car').value.toUpperCase();
+            const memo = document.getElementById('bk-memo').value;
+            if(!car) return alert("차량번호를 입력하세요.");
+
             db.ref('bookings').push({ date: selectedDateStr, car: car, memo: memo });
-            document.getElementById('bk-car').value = ""; document.getElementById('bk-memo').value = "";
+            document.getElementById('bk-car').value = "";
+            document.getElementById('bk-memo').value = "";
         }
 
         function loadDayList(dateStr) {
             db.ref('bookings').orderByChild('date').equalTo(dateStr).on('value', s => {
-                const list = document.getElementById('day-res-list'); list.innerHTML = "";
+                const list = document.getElementById('day-res-list');
+                list.innerHTML = "";
                 s.forEach(c => {
-                    const d = c.val();
+                    const data = c.val();
                     list.innerHTML += `
-                        <div class="p-3 bg-slate-800 rounded-xl border border-white/10 group">
-                            <div class="flex justify-between items-center mb-1">
-                                <input class="bg-transparent font-black text-blue-400 outline-none w-3/4 uppercase" value="${d.car}" onchange="updateBooking('${c.key}', 'car', this.value)">
-                                <button onclick="deleteBooking('${c.key}')" class="text-red-500 text-xs font-bold px-2 py-1 bg-red-500/10 rounded">삭제</button>
+                        <div class="p-3 bg-slate-800 rounded-xl border border-white/5 group">
+                            <div class="flex justify-between items-start">
+                                <input onchange="updateBooking('${c.key}', 'car', this.value)" value="${data.car}" class="bg-transparent font-black text-blue-400 outline-none uppercase w-full">
+                                <button onclick="deleteBooking('${c.key}')" class="text-red-500 text-xs font-bold opacity-0 group-hover:opacity-100">삭제</button>
                             </div>
-                            <input class="bg-transparent text-gray-400 text-xs outline-none w-full" value="${d.memo||''}" onchange="updateBooking('${c.key}', 'memo', this.value)" placeholder="메모 수정...">
+                            <input onchange="updateBooking('${c.key}', 'memo', this.value)" value="${data.memo || ''}" placeholder="메모 추가..." class="bg-transparent text-[11px] text-gray-400 outline-none w-full mt-1">
                         </div>`;
                 });
             });
         }
 
-        function updateBooking(key, field, val) { let o = {}; o[field] = val; db.ref('bookings/'+key).update(o); }
-        function deleteBooking(key) { if(confirm("삭제하시겠습니까?")) db.ref('bookings/'+key).remove(); }
+        function updateBooking(key, field, value) {
+            let obj = {}; obj[field] = value;
+            db.ref('bookings/' + key).update(obj);
+        }
 
-        // [정비 이력 관리 - 사장님 요청 구조 고정]
+        function deleteBooking(key) {
+            if(confirm("정말 이 예약을 삭제할까요?")) db.ref('bookings/' + key).remove();
+        }
+
+        // [정비/이력 관련 (사장님 요청 양식)]
         function initRows() {
             const b = document.getElementById('bill-body'); b.innerHTML = "";
             for(let i=0; i<18; i++) {
@@ -304,26 +350,27 @@
 
         function saveAndSync() {
             const car = document.getElementById('db-car').value.toUpperCase();
-            if(!car || !document.getElementById('db-comp').value) return alert("차량번호와 완료일 필수!");
-            const data = {
-                type: document.getElementById('db-type').value,
+            if(!car || !document.getElementById('db-comp').value) return alert("차량번호와 완료일은 필수입니다.");
+            const data = { 
+                type: document.getElementById('db-type').value, 
                 regDate: document.getElementById('db-regdate').value,
-                chassis: document.getElementById('db-chassis').value,
+                chassis: document.getElementById('db-chassis').value, 
                 dateIn: document.getElementById('db-in').value,
                 dateComp: document.getElementById('db-comp').value,
                 dateOut: document.getElementById('db-out').value,
-                total: document.getElementById('v-total').innerText
+                total: document.getElementById('v-total').innerText 
             };
             db.ref('history/'+car).push(data);
             alert("정비 이력이 저장되었습니다.");
         }
 
         function loadPeriodHistory() {
-            const car = document.getElementById('search-car').value.toUpperCase(), s = document.getElementById('h-start').value, e = document.getElementById('h-end').value;
-            db.ref('history/'+car).orderByChild('dateComp').startAt(s).endAt(e).on('value', snap => {
+            const car = document.getElementById('search-car').value.toUpperCase();
+            const start = document.getElementById('h-start').value, end = document.getElementById('h-end').value;
+            db.ref('history/'+car).orderByChild('dateComp').startAt(start).endAt(end).on('value', s => {
                 const list = document.getElementById('history-list'); list.innerHTML = "";
-                snap.forEach(c => {
-                    list.innerHTML += `<div class="p-2 bg-slate-800 rounded-lg mb-1 text-[11px] flex justify-between cursor-pointer border border-white/5" onclick="fillForm('${car}', '${c.key}')">
+                s.forEach(c => {
+                    list.innerHTML += `<div class="p-2 bg-slate-800 rounded-lg mb-1 text-[11px] flex justify-between cursor-pointer border border-white/5 text-white" onclick="fillForm('${car}', '${c.key}')">
                         <span class="text-blue-400 font-bold">${c.val().dateComp}</span><span>₩${c.val().total}</span>
                     </div>`;
                 });
@@ -344,18 +391,34 @@
         }
 
         function loadAllData() {
-            // 관리자 승인 로직 (기존 유지)
             db.ref('users').orderByChild('status').equalTo('pending').on('value', s => {
-                const list = document.getElementById('wait-list'); if(!list) return;
-                list.innerHTML = "";
+                const list = document.getElementById('wait-list'); list.innerHTML = "";
                 s.forEach(c => {
                     list.innerHTML += `<div class="flex justify-between items-center p-4 bg-slate-800 rounded-2xl border border-white/5">
-                        <span class="font-bold text-white">${c.val().name}</span>
+                        <span class="font-bold text-white">${c.val().name} (${c.key})</span>
                         <button onclick="db.ref('users/${c.key}').update({status:'approved'})" class="bg-blue-600 px-4 py-1.5 rounded-lg text-xs text-white">승인</button>
                     </div>`;
                 });
             });
         }
+
+        // 부품 관리
+        function savePart() {
+            const name = document.getElementById('pt-name').value;
+            const stock = document.getElementById('pt-stock').value;
+            if(!name) return alert("부품명을 입력하세요.");
+            db.ref('parts').push({ name, stock });
+            document.getElementById('pt-name').value = ""; document.getElementById('pt-stock').value = "";
+        }
+        db.ref('parts').on('value', s => {
+            const list = document.getElementById('parts-list'); list.innerHTML = "";
+            s.forEach(c => {
+                list.innerHTML += `<div class="p-4 bg-slate-800 rounded-[20px] flex justify-between border border-white/5 text-white">
+                    <span>${c.val().name}</span><span class="font-bold text-emerald-400">${c.val().stock} 개</span>
+                    <button onclick="db.ref('parts/${c.key}').remove()" class="text-red-500 ml-4">삭제</button>
+                </div>`;
+            });
+        });
     </script>
 </body>
 </html>
